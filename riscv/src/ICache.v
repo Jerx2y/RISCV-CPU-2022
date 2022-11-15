@@ -1,5 +1,6 @@
 // instruction cache
-module IC (
+
+module ICache (
     
 );
     
