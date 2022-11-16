@@ -1,8 +1,0 @@
-// Decoder
-module DC (
-    
-);
-
-
-
-endmodule
