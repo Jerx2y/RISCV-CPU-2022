@@ -8,24 +8,24 @@
 
 ## 进度
 
-[x] Memory Controller
+- [x] Memory Controller
 
-[x] ICache
+- [x] ICache
 
-[ ] IFetcher (coding..)
+- [ ] IFetcher (coding..)
 
-[ ] Issue
+- [ ] Issue
 
-[ ] RoB
+- [ ] RoB
 
-[ ] LS
+- [ ] LS
 
-[ ] LSB
+- [ ] LSB
 
-[ ] DCache
+- [ ] DCache
 
-[ ] ALU
+- [ ] ALU
 
-[ ] Reg
+- [ ] Reg
 
-[ ] cpu.v
+- [ ] cpu.v
