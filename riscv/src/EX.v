@@ -1,6 +1,0 @@
-// execution
-module EX (
-    
-);
-    
-endmodule

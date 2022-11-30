@@ -1,42 +1,3 @@
-//    LUI,    U    Load Upper Immediate
-//    AUIPC,  U    Add Upper Immediate to PC
-//    JAL,    J    Jump & Link
-//    JALR,   I    Jump & Link Register
-
-//    BEQ,    B    Branch Equal
-//    BNE,    B    Branch Not Equal
-//    BLT,    B    Branch Less Than
-//    BGE,    B    Branch Greater than or Equal
-//    BLTU,   B    Branch Less than Unsigned
-//    BGEU,   B    Branch Greater than or Equal Unsigned
-//    LB,     I    Load Byte
-//    LH,     I    Load Halfword
-//    LW,     I    Load Word
-//    LBU,    I    Load Byte Unsigned
-//    LHU,    I    Load Halfword Unsigned
-//    SB,     S    Store Byte
-//    SH,     S    Store Halfword
-//    SW,     S    Store Word
-//    ADDI,   I    ADD Immediate
-//    SLTI,   I    Set Less than Immediate
-//    SLTIU,  I    Set Less than Immediate Unsigned
-//    XORI,   I    XOR Immediate
-//    ORI,    I    OR Immediate
-//    ANDI,   I    AND Immediate
-//    SLLI,   I    Shift Left Immediate
-//    SRLI,   I    Shift Right Immediate
-//    SRAI,   I    Shift Right Arith Immediate
-//    ADD,    R    ADD
-//    SUB,    R    SUBtract
-//    SLL,    R    Shift Left
-//    SLT,    R    Set Less than
-//    SLTU,   R    Set Less than Unsigned
-//    XOR,    R    XOR
-//    SRL,    R    Shift Right
-//    SRA,    R    Shift Right Arithmetic
-//    OR,     R    OR
-//    AND     R    AND
-
 `include "defines.v"
 
 module IFetcher (
@@ -45,27 +6,89 @@ module IFetcher (
     // ICache
     input  wire          IC_ins_sgn,
     input  wire [31 : 0] IC_ins,
+    output wire          IC_pc_sgn,
     output wire [31 : 0] IC_pc,
 
     // Issue
     input  wire          IS_stall,
     output wire          IS_ins_sgn,
-    output wire [31 : 0] IS_ins
+    output wire [31 : 0] IS_ins,
+    output reg           IS_jump_flag,
+    output reg  [31 : 0] IS_jump_pc
 );
 
-    reg [31 : 0] pc, next_pc;
-    wire [6 : 0] op = IC_ins[6 : 0];
+    wire [31 : 0]   ins = IC_ins;
+
+    reg  [31 : 0]   pc, next_pc;
+    wire [ 6 : 0]   op = IC_ins[6 : 0];
+
+    reg  [31 : 0]   imm;
+    reg  [ 1 : 0]   BHB[`BHBSZ];
+
+    reg             IF_stall;
 
     assign IS_ins_sgn = IC_ins_sgn;
     assign IS_ins = IC_ins;
+    assign IC_pc_sgn = !IF_stall && !IS_stall;
     assign IC_pc = next_pc;
 
     always @(*) begin
-        
+        case (op)
+            `JALOP  : imm = {{12{ins[31]}}, ins[19:12], ins[20], ins[30:21]} << 1;
+            `JALROP : imm = {{20{ins[31]}}, ins[31:20]};
+            default : imm = {{20{ins[31]}}, ins[7], ins[30:25], ins[11:8]} << 1;          // branch
+        endcase
+    end
+
+    always @(*) begin
+        if (!IS_stall && IC_ins_sgn) begin
+            if (op == `BROP) begin
+                if (BHB[pc[`BHBID]][1]) begin
+                    next_pc = pc + imm;
+                    IS_jump_flag = `True;
+                    IS_jump_pc = pc + 4;
+                end else begin
+                    next_pc = pc + 4;
+                    IS_jump_flag = `False;
+                    IS_jump_pc = pc + imm;
+                end
+                IF_stall = `False;
+            end else if (op == `JALOP) begin
+                next_pc = pc + imm;
+                IS_jump_pc = pc + 4;
+                IF_stall = `False;
+            end else if (op == `JALROP) begin
+                IS_jump_pc = pc + 4;
+                IF_stall = `True;
+            end else if (op == `AUIPCOP) begin
+                IS_jump_pc = pc;
+                IF_stall = `False;
+            end else begin
+                next_pc = pc + 4;
+                IF_stall = `False;
+            end
+        end
     end
 
     always @(posedge clk) begin
-        if (rdy) begin
+        if (rst) begin
+            pc <= 32'b0;
+        end else if (!rdy) begin
+            
+        end else if (IS_stall) begin
+            
+        end else if (IC_ins_sgn) begin // pc <= next_pc ?
+            case (op)
+                `BROP: begin
+                    if (BHB[pc[`BHBID]][1])
+                        pc <= pc + imm;
+                    else 
+                        pc <= pc + 4;
+                end
+                `JALOP: pc <= pc + imm;
+                `JALROP: pc <= pc;
+                default: pc <= pc + 4;
+            endcase
         end
     end
 

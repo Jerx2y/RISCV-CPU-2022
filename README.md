@@ -1,31 +1,33 @@
 # <img src="/README.assets/cpu.png" width="40" align=center /> RISCV-CPU 2022
 
-> [课程主页](https://github.com/ACMClassCourses/RISCV-CPU)
+> [Project Introduction](https://github.com/ACMClassCourses/RISCV-CPU)
 
-## 设计
+## Designment
 
 ![design](/README.assets/designment.png)
 
-## 进度
+## Progress
 
 - [x] Memory Controller
 
 - [x] ICache
 
-- [ ] IFetcher (coding..)
+- [x] IFetcher
 
-- [ ] Issue
+- [x] Issue
 
-- [ ] RoB
+  - 关于 JALR 的处理： 丢给 ALU 算完以后直接发给 PC
 
-- [ ] LS
+- [x] RoB
 
-- [ ] LSB
+- [x] RS
+
+- [x] LSB
 
 - [ ] DCache
 
 - [ ] ALU
 
-- [ ] Reg
+- [x] Reg
 
 - [ ] cpu.v

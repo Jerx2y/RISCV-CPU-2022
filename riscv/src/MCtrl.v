@@ -1,4 +1,4 @@
-// memory controller
+`include "defines.v"
 
 module MCtrl (
     input wire clk, rst, rdy,
