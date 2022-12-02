@@ -8,7 +8,7 @@
 
 ## Progress
 
-- [x] Memory Controller
+- [x] MCtrl
 
 - [x] ICache
 
@@ -24,10 +24,16 @@
 
 - [x] LSB
 
-- [ ] DCache
+- [x] DCache
 
-- [ ] ALU
+- [x] ALU
 
 - [x] Reg
 
 - [ ] cpu.v
+
+## TODO
+
+连线
+
+所有的初始化工作：rst 和 jp_wrong 做好

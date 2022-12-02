@@ -14,7 +14,11 @@ module IFetcher (
     output wire          IS_ins_sgn,
     output wire [31 : 0] IS_ins,
     output reg           IS_jump_flag,
-    output reg  [31 : 0] IS_jump_pc
+    output reg  [31 : 0] IS_jump_pc,
+
+    // ALU
+    input  wire          ALU_sgn,
+    input  wire [31 : 0] ALU_pc
 );
 
     wire [31 : 0]   ins = IC_ins;
@@ -70,6 +74,13 @@ module IFetcher (
         end
     end
 
+    always @(*) begin
+        if (ALU_sgn)  begin
+            IF_stall = `False;
+            next_pc = ALU_pc;
+        end
+    end
+
     always @(posedge clk) begin
         if (rst) begin
             pc <= 32'b0;
@@ -78,17 +89,18 @@ module IFetcher (
         end else if (IS_stall) begin
             
         end else if (IC_ins_sgn) begin // pc <= next_pc ?
-            case (op)
-                `BROP: begin
-                    if (BHB[pc[`BHBID]][1])
-                        pc <= pc + imm;
-                    else 
-                        pc <= pc + 4;
-                end
-                `JALOP: pc <= pc + imm;
-                `JALROP: pc <= pc;
-                default: pc <= pc + 4;
-            endcase
+            pc <= next_pc;
+            // case (op)
+            //     `BROP: begin
+            //         if (BHB[pc[`BHBID]][1])
+            //             pc <= pc + imm;
+            //         else 
+            //             pc <= pc + 4;
+            //     end
+            //     `JALOP: pc <= pc + imm;
+            //     `JALROP: pc <= pc;
+            //     default: pc <= pc + 4;
+            // endcase
         end
     end
 

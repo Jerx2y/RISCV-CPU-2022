@@ -16,6 +16,12 @@ module ROB (
     // RS
     output wire  [`ROBID]   RS_ROB_name,
 
+    // LSB
+    output wire  [`ROBID]   LSB_ROB_name,
+    output reg              LSB_commit_sgn,
+    output wire  [`LSBID]   LSB_commit_dest,
+    output wire  [31 : 0]   LSB_commit_value,
+
     // REG
     input  wire  [`ROBID]   REG_ord1,
     input  wire  [`ROBID]   REG_ord2,
@@ -25,14 +31,24 @@ module ROB (
     output wire  [31 : 0]   REG_val1,
     output wire  [31 : 0]   REG_val2,
 
+    output reg              REG_commit_sgn,
+    output wire  [`REGID]   REG_commit_dest,
+    output wire  [31 : 0]   REG_commit_value,
+    output wire  [`ROBID]   REG_commit_ROB_name,
+
     // CDBA
     input wire              CDBA_sgn,
     input wire   [31 : 0]   CDBA_result,
-    input wire   [`ROBID]   CDBA_ROB_name
+    input wire   [`ROBID]   CDBA_ROB_name,
+
+    // CDBD
+    input wire              CDBD_sgn,
+    input wire   [31 : 0]   CDBD_result,
+    input wire   [`ROBID]   CDBD_ROB_name
 );
 
     reg             ready    [`ROBSZ];
-    reg [ 4 : 0]    dest     [`ROBSZ];
+    reg [`REGID]    dest     [`ROBSZ];
     reg [31 : 0]    value    [`ROBSZ];
     reg [ 5 : 0]    opcode   [`ROBSZ];
     reg             jumped   [`ROBSZ];
@@ -43,11 +59,19 @@ module ROB (
     assign RS_ROB_name  = rear;
     assign IS_ROB_name  = rear;
     assign REG_ROB_name = rear;
+    assign LSB_ROB_name = rear;
 
     assign REG_rdy1     = ready[REG_ord1];
     assign REG_val1     = value[REG_ord1];
     assign REG_rdy2     = ready[REG_ord2];
     assign REG_val2     = value[REG_ord2];
+
+    assign REG_commit_dest     = dest[front];
+    assign REG_commit_value    = value[front];
+    assign REG_commit_ROB_name = front;
+
+    assign LSB_commit_dest  = dest[front][`LSBID];
+    assign LSB_commit_value = value[front];
     
     always @(posedge clk) begin
         if (rst) begin
@@ -73,15 +97,54 @@ module ROB (
                 end
             end
 
+            // CDB of DCache
+            if (CDBD_sgn) begin
+                ready[CDBD_ROB_name] <= `True;
+                value[CDBD_ROB_name] <= CDBD_result;
+            end
+
             // commit
             if (ready[front]) begin
                 front <= -(~front);
+                ready[front] <= `False;
 
                 case (opcode[front])
-                    `LUI: 
-                    `;
+                    `LUI: begin
+                        REG_commit_sgn = `True;
+                        LSB_commit_sgn = `False;
+                    end
+                    `AUIPC: begin
+                        REG_commit_sgn = `True;
+                        LSB_commit_sgn = `False;
+                    end
+                    `JAL: begin
+                        REG_commit_sgn = `True;
+                        LSB_commit_sgn = `False;
+                    end
+                    `JALR: begin
+                        REG_commit_sgn = `True;
+                        LSB_commit_sgn = `False;
+                    end
+                    `BTYPE: begin
+                        // TODO;
+                    end
+                    `LTYPE: begin
+                        REG_commit_sgn = `True;
+                        LSB_commit_sgn = `False;
+                    end
+                    `STYPE: begin
+                        REG_commit_sgn = `False;
+                        LSB_commit_sgn = `True;
+                    end
+                    `ITYPE: begin
+                        REG_commit_sgn = `True;
+                        LSB_commit_sgn = `False;
+                    end
+                    `RTYPE: begin
+                        REG_commit_sgn = `True;
+                        LSB_commit_sgn = `False;
+                    end
                 endcase
-
             end
         end
     end

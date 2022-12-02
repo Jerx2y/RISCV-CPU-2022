@@ -8,6 +8,10 @@
 `define BHBSZ       512
 `define BHBID       10 : 2
 
+`define REGSI       32
+`define REGSZ       31 : 0
+`define REGID        4 : 0
+
 `define ROBSI       16
 `define ROBSZ       15 : 0
 `define ROBID        3 : 0

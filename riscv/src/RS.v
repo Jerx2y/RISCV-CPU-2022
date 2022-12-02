@@ -25,7 +25,12 @@ module RS (
     // CDBA
     input wire               CDBA_sgn,
     input wire    [31 : 0]   CDBA_result,
-    input wire    [`ROBID]   CDBA_ROB_name
+    input wire    [`ROBID]   CDBA_ROB_name,
+
+    // CDBD
+    input wire               CDBD_sgn,
+    input wire    [31 : 0]   CDBD_result,
+    input wire    [`ROBID]   CDBD_ROB_name
 );
 
     reg   [`RSSZ]    busy;
@@ -34,7 +39,7 @@ module RS (
     reg   [31 : 0]   val2    [`RSSZ];
     reg   [`RSSZ]    rdy1;
     reg   [`RSSZ]    rdy2;
-    reg   [`ROBSZ]   name    [`RSSZ];
+    reg   [`ROBID]   name    [`RSSZ];
 
     wire  [`RSSZ]    ready = rdy1 & rdy2 & busy;
     wire  [`RSSZ]    ready_pos = ready & (-ready);
@@ -82,6 +87,19 @@ module RS (
                     if (!rdy2[i] && val2[i][`ROBID] == CDBA_ROB_name) begin
                         rdy2[i] <= `True;
                         val2[i] <= CDBA_result;
+                    end               
+                end
+            end
+
+            if (CDBD_sgn) begin
+                for (i = 0; i < `RSSI; i = i + 1) begin
+                    if (!rdy1[i] && val1[i][`ROBID] == CDBD_ROB_name) begin
+                        rdy1[i] <= `True;
+                        val1[i] <= CDBD_result;
+                    end
+                    if (!rdy2[i] && val2[i][`ROBID] == CDBD_ROB_name) begin
+                        rdy2[i] <= `True;
+                        val2[i] <= CDBD_result;
                     end               
                 end
             end

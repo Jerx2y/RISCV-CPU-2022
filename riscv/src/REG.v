@@ -20,7 +20,11 @@ module REG (
     input  wire   [31 : 0]   ROB_val1,
     input  wire   [31 : 0]   ROB_val2,
     output wire   [`ROBID]   ROB_ord1,
-    output wire   [`ROBID]   ROB_ord2
+    output wire   [`ROBID]   ROB_ord2,
+    input  wire              ROB_commit_sgn,
+    input  wire   [`REGID]   ROB_commit_dest,
+    input  wire   [31 : 0]   ROB_commit_value,
+    input  wire   [`ROBID]   ROB_commit_ROB_name
 );
 
     reg [31 : 0]  reg_val [31 : 0];
@@ -36,6 +40,11 @@ module REG (
     assign IS_rs2_rdy = reg_rdy[IS_rs2] || ROB_rdy2;
 
     always @(*) begin
+        if (ROB_commit_sgn)
+            if (!reg_rdy[ROB_commit_dest] && reg_ord[ROB_commit_dest] == ROB_commit_ROB_name) begin
+                reg_rdy[ROB_commit_dest] = `True;
+                reg_val[ROB_commit_dest] = ROB_commit_value;
+            end
         if (IS_sgn) begin
             reg_rdy[IS_rd] = `False;
             reg_ord[IS_rd] = ROB_name;

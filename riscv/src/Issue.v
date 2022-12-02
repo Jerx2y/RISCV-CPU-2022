@@ -172,7 +172,8 @@ module Issue (
                     LSB_sgn     = `True;
                     LSB_adr_val = ROB_name;
                     LSB_adr_rdy = `False;
-                    LSB_val_val = ROB_name;
+                    LSB_val_val = ROB_name; // Similar to ROB_name
+                    LSB_val_rdy = `True;
 
                     ROB_opcode  = `LTYPE;
                     ROB_dest    = rd;
