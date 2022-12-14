@@ -8,7 +8,6 @@ module Issue (
     input wire   [31 : 0]   IF_ins,
     input wire              IF_jump_flag,
     input wire   [31 : 0]   IF_jump_pc,
-    output reg              IF_stall,
 
     // ROB
     input  reg   [`ROBID]   ROB_name,
@@ -316,7 +315,7 @@ module Issue (
 
     always @(posedge clk) begin
         if (rst) begin
-            
+            ROB_sgn <= `False;
         end else if (!rdy) begin
             
         end else begin

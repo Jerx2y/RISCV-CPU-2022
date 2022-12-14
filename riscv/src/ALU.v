@@ -10,6 +10,10 @@ module ALU (
     input wire  [31 : 0]  RS_lhs,
     input wire  [31 : 0]  RS_rhs,
 
+    // IF
+    output reg            IF_sgn,
+    output reg  [31 : 0]  IF_pc,
+
     // CDB
     output wire           CDB_sgn,
     output wire [31 : 0]  CDB_result,
@@ -62,6 +66,12 @@ module ALU (
             opcode = RS_opcode;
             ROB_name = RS_ROB_name;
             sgn = `True;
+            if (opcode == `JALR) begin
+                IF_sgn = `True;
+                IF_pc = result;
+            end else begin
+                IF_sgn = `False;
+            end
         end else begin
             sgn = `False;
         end

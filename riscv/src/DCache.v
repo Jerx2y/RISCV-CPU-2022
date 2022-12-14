@@ -10,7 +10,7 @@ module DCache (
     input wire  [ 5 : 0]  LSB_opcode,
     output wire           LSB_sgn_out,
 
-    // MEM
+    // MC
     input wire            MEM_sgn_in,
     input wire  [31 : 0]  MEM_val_in,
     output wire           MEM_sgn_out,

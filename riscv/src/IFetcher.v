@@ -10,7 +10,6 @@ module IFetcher (
     output wire [31 : 0] IC_pc,
 
     // Issue
-    input  wire          IS_stall,
     output wire          IS_ins_sgn,
     output wire [31 : 0] IS_ins,
     output reg           IS_jump_flag,
@@ -18,7 +17,11 @@ module IFetcher (
 
     // ALU
     input  wire          ALU_sgn,
-    input  wire [31 : 0] ALU_pc
+    input  wire [31 : 0] ALU_pc,
+
+    // ROB
+    input  wire          ROB_jp_wrong,
+    input  wire [31 : 0] ROB_jp_tar
 );
 
     wire [31 : 0]   ins = IC_ins;
@@ -33,7 +36,7 @@ module IFetcher (
 
     assign IS_ins_sgn = IC_ins_sgn;
     assign IS_ins = IC_ins;
-    assign IC_pc_sgn = !IF_stall && !IS_stall;
+    assign IC_pc_sgn = !IF_stall;
     assign IC_pc = next_pc;
 
     always @(*) begin
@@ -45,7 +48,13 @@ module IFetcher (
     end
 
     always @(*) begin
-        if (!IS_stall && IC_ins_sgn) begin
+        if (rst) begin
+            next_pc = 0;
+            IF_stall = `False;
+        end else if (ROB_jp_wrong) begin
+            next_pc = ROB_jp_tar;
+            IF_stall = `False;
+        end else if (IC_ins_sgn) begin
             if (op == `BROP) begin
                 if (BHB[pc[`BHBID]][1]) begin
                     next_pc = pc + imm;
@@ -83,24 +92,11 @@ module IFetcher (
 
     always @(posedge clk) begin
         if (rst) begin
-            pc <= 32'b0;
+            pc <= 0;
         end else if (!rdy) begin
             
-        end else if (IS_stall) begin
-            
-        end else if (IC_ins_sgn) begin // pc <= next_pc ?
+        end else if (IC_ins_sgn) begin
             pc <= next_pc;
-            // case (op)
-            //     `BROP: begin
-            //         if (BHB[pc[`BHBID]][1])
-            //             pc <= pc + imm;
-            //         else 
-            //             pc <= pc + 4;
-            //     end
-            //     `JALOP: pc <= pc + imm;
-            //     `JALROP: pc <= pc;
-            //     default: pc <= pc + 4;
-            // endcase
         end
     end
 

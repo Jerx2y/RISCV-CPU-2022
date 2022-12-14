@@ -21,7 +21,6 @@ module LSB (
 
     // DCache
     input wire             DC_sgn_in,
-    input wire             DC_val_in,
     output reg             DC_sgn,
     output wire [31 : 0]   DC_addr,
     output wire [31 : 0]   DC_val,
@@ -35,7 +34,10 @@ module LSB (
     // CDBD
     input wire             CDBD_sgn,
     input wire  [31 : 0]   CDBD_result,
-    input wire  [`ROBID]   CDBD_ROB_name
+    input wire  [`ROBID]   CDBD_ROB_name,
+
+    // jp_wrong
+    input wire             jp_wrong
 );
 
     reg  [ 5 : 0]   opcode    [`LSBSZ];
@@ -63,8 +65,9 @@ module LSB (
     end
 
     always @(posedge clk) begin
-        if (rst) begin
-            
+        if (rst || jp_wrong) begin
+            front <= 0;
+            rear <= 0;
         end else if (!rdy) begin
             
         end else begin

@@ -18,18 +18,23 @@ module ICache (
 );
 
 
-    reg               valid     [`ICSZ - 1 : 0];
-    reg   [31 : 0]    val       [`ICSZ - 1 : 0];
-    reg   [`TGID]     tag       [`ICSZ - 1 : 0];
+    reg   [`ICSZ - 1 : 0]   valid;
+    reg   [31 : 0]          val[`ICSZ - 1 : 0];
+    reg   [`TGID]           tag[`ICSZ - 1 : 0];
     
-    wire [31 : 0] pc = IF_addr;
-    wire [`ICID] index = pc[`ICID];
+    wire [31 : 0]     pc        = IF_addr;
+    wire [`ICID]      index     = pc[`ICID];
     wire miss = !valid[index] || tag[index] != pc[`TGID];
 
     assign MC_addr_sgn = miss && !MC_val_sgn;
     assign MC_addr = pc;
 
     always @(posedge clk) begin
+        if (rst) begin
+            valid      <= 0;
+            IF_val_sgn <= `False;
+        end
+
         if (rdy && IF_addr_sgn) begin
             if (valid[index]) begin
                 if (!miss) begin

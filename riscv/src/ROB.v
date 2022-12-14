@@ -3,6 +3,10 @@
 module ROB (
     input wire clk, rst, rdy,
 
+    // IFetcher
+    output wire             IF_jp_wrong,
+    output reg   [31 : 0]   IF_jp_tar,
+
     // Issue
     input  wire             IS_sgn,
     input  wire             IS_ready,
@@ -44,10 +48,13 @@ module ROB (
     // CDBD
     input wire              CDBD_sgn,
     input wire   [31 : 0]   CDBD_result,
-    input wire   [`ROBID]   CDBD_ROB_name
+    input wire   [`ROBID]   CDBD_ROB_name,
+
+    // jp_wrong
+    output reg              jp_wrong
 );
 
-    reg             ready    [`ROBSZ];
+    reg [`ROBSZ]    ready;
     reg [`REGID]    dest     [`ROBSZ];
     reg [31 : 0]    value    [`ROBSZ];
     reg [ 5 : 0]    opcode   [`ROBSZ];
@@ -66,16 +73,73 @@ module ROB (
     assign REG_rdy2     = ready[REG_ord2];
     assign REG_val2     = value[REG_ord2];
 
-    assign REG_commit_dest     = dest[front];
-    assign REG_commit_value    = value[front];
-    assign REG_commit_ROB_name = front;
+    assign IF_jp_wrong  = jp_wrong;
 
-    assign LSB_commit_dest  = dest[front][`LSBID];
-    assign LSB_commit_value = value[front];
+    always @(*) begin // commit
+        if (ready[front]) begin
+            REG_commit_dest     = dest[front];
+            REG_commit_value    = value[front];
+            REG_commit_ROB_name = front;
+            LSB_commit_dest     = dest[front][`LSBID];
+            LSB_commit_value    = value[front];
+
+            case (opcode[front])
+                `LUI: begin
+                    jp_wrong = `False;
+                    REG_commit_sgn = `True;
+                    LSB_commit_sgn = `False;
+                end
+                `AUIPC: begin
+                    jp_wrong = `False;
+                    REG_commit_sgn = `True;
+                    LSB_commit_sgn = `False;
+                end
+                `JAL: begin
+                    jp_wrong = `False;
+                    REG_commit_sgn = `True;
+                    LSB_commit_sgn = `False;
+                end
+                `JALR: begin
+                    jp_wrong = `False;
+                    REG_commit_sgn = `True;
+                    LSB_commit_sgn = `False;
+                end
+                `BTYPE: begin
+                    jp_wrong = jumped[front] != value[front][0];
+                    REG_commit_sgn = `False;
+                    LSB_commit_sgn = `False;
+                    IF_jp_tar = jumpto[front];
+                end
+                `LTYPE: begin
+                    jp_wrong = `False;
+                    REG_commit_sgn = `True;
+                    LSB_commit_sgn = `False;
+                end
+                `STYPE: begin
+                    jp_wrong = `False;
+                    REG_commit_sgn = `False;
+                    LSB_commit_sgn = `True;
+                end
+                `ITYPE: begin
+                    jp_wrong = `False;
+                    REG_commit_sgn = `True;
+                    LSB_commit_sgn = `False;
+                end
+                `RTYPE: begin
+                    jp_wrong = `False;
+                    REG_commit_sgn = `True;
+                    LSB_commit_sgn = `False;
+                end
+            endcase
+        end
+    
+    end
     
     always @(posedge clk) begin
         if (rst) begin
-            
+            front <= 0;
+            rear  <= 0;
+            ready <= 0;
         end else if (!rdy) begin
 
         end else begin
@@ -103,49 +167,11 @@ module ROB (
                 value[CDBD_ROB_name] <= CDBD_result;
             end
 
-            // commit
             if (ready[front]) begin
-                front <= -(~front);
                 ready[front] <= `False;
-
-                case (opcode[front])
-                    `LUI: begin
-                        REG_commit_sgn = `True;
-                        LSB_commit_sgn = `False;
-                    end
-                    `AUIPC: begin
-                        REG_commit_sgn = `True;
-                        LSB_commit_sgn = `False;
-                    end
-                    `JAL: begin
-                        REG_commit_sgn = `True;
-                        LSB_commit_sgn = `False;
-                    end
-                    `JALR: begin
-                        REG_commit_sgn = `True;
-                        LSB_commit_sgn = `False;
-                    end
-                    `BTYPE: begin
-                        // TODO;
-                    end
-                    `LTYPE: begin
-                        REG_commit_sgn = `True;
-                        LSB_commit_sgn = `False;
-                    end
-                    `STYPE: begin
-                        REG_commit_sgn = `False;
-                        LSB_commit_sgn = `True;
-                    end
-                    `ITYPE: begin
-                        REG_commit_sgn = `True;
-                        LSB_commit_sgn = `False;
-                    end
-                    `RTYPE: begin
-                        REG_commit_sgn = `True;
-                        LSB_commit_sgn = `False;
-                    end
-                endcase
+                front <= -(~front);
             end
+
         end
     end
     

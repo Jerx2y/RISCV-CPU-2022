@@ -78,7 +78,10 @@ module MCtrl (
 
     always @(posedge clk) begin
         if (rst) begin
-            
+            dat_sgn_out <= `False;
+            ins_sgn_out <= `False;
+            dat_now     <= `False;
+            ins_now     <= `False;
         end else if (!rdy) begin
             
         end else begin
