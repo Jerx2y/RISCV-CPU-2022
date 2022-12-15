@@ -82,6 +82,8 @@ module MCtrl (
             ins_sgn_out <= `False;
             dat_now     <= `False;
             ins_now     <= `False;
+            ins_offset  <= 0;
+            dat_offset  <= 0;
         end else if (!rdy) begin
             
         end else begin
@@ -128,6 +130,7 @@ module MCtrl (
 
             end else if (ins_sgn_in) begin
                 dat_sgn_out <= `False;
+                ins_sgn_out <= `False;
                 ins_offset <= -(~ins_offset);
                 ins_now <= `True;
             end else if (dat_sgn_in) begin
@@ -135,14 +138,19 @@ module MCtrl (
                 case (dat_opcode)
                     `LB, `LBU: dat_sgn_out <= `True;
                     `LH, `LHU, `LW: begin
-                        dat_now    <= `True;
-                        dat_offset <= -(~dat_offset);
+                        dat_sgn_out <= `False;
+                        dat_now     <= `True;
+                        dat_offset  <= -(~dat_offset);
                     end
                     `SH, `SW: begin
-                        dat_now    <= `True;
-                        dat_offset <= -(~dat_offset);
+                        dat_sgn_out <= `False;
+                        dat_now     <= `True;
+                        dat_offset  <= -(~dat_offset);
                     end
                 endcase
+            end else begin
+                ins_sgn_out <= `False;
+                dat_sgn_out <= `False;
             end
         end
     end

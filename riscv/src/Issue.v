@@ -10,7 +10,7 @@ module Issue (
     input wire   [31 : 0]   IF_jump_pc,
 
     // ROB
-    input  reg   [`ROBID]   ROB_name,
+    input wire   [`ROBID]   ROB_name,
     output reg              ROB_sgn,
     output reg              ROB_ready,
     output reg   [ 5 : 0]   ROB_opcode,

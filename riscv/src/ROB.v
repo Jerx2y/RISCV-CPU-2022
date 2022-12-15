@@ -23,8 +23,8 @@ module ROB (
     // LSB
     output wire  [`ROBID]   LSB_ROB_name,
     output reg              LSB_commit_sgn,
-    output wire  [`LSBID]   LSB_commit_dest,
-    output wire  [31 : 0]   LSB_commit_value,
+    output reg   [`LSBID]   LSB_commit_dest,
+    output reg   [31 : 0]   LSB_commit_value,
 
     // REG
     input  wire  [`ROBID]   REG_ord1,
@@ -36,9 +36,9 @@ module ROB (
     output wire  [31 : 0]   REG_val2,
 
     output reg              REG_commit_sgn,
-    output wire  [`REGID]   REG_commit_dest,
-    output wire  [31 : 0]   REG_commit_value,
-    output wire  [`ROBID]   REG_commit_ROB_name,
+    output reg  [`REGID]    REG_commit_dest,
+    output reg  [31 : 0]    REG_commit_value,
+    output reg  [`ROBID]    REG_commit_ROB_name,
 
     // CDBA
     input wire              CDBA_sgn,

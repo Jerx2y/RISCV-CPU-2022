@@ -36,14 +36,13 @@ module ICache (
         end
 
         if (rdy && IF_addr_sgn) begin
-            if (valid[index]) begin
-                if (!miss) begin
-                    IF_val_sgn <= `True;
-                    IF_val <= val[index];
-                end else begin
-                    IF_val_sgn <= MC_val_sgn;
-                    IF_val <= MC_val;
-                end
+
+            if (!miss) begin
+                IF_val_sgn <= `True;
+                IF_val <= val[index];
+            end else begin
+                IF_val_sgn <= MC_val_sgn;
+                IF_val <= MC_val;
             end
 
             if (MC_val_sgn) begin
@@ -51,6 +50,8 @@ module ICache (
                 val[index] <= MC_val;
                 tag[index] <= pc[`TGID];
             end
+        end else begin
+            IF_val_sgn <= `False;
         end
     end
     

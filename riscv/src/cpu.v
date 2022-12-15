@@ -34,6 +34,97 @@ wire [31 : 0] MC_IC_ins_val;
 wire          MC_DC_dat_sgn_out;
 wire [31 : 0] MC_DC_dat_val_out;
 
+wire          IC_MC_addr_sgn;
+wire [31 : 0] IC_MC_addr;
+wire          IC_IF_val_sgn;
+wire [31 : 0] IC_IF_val;
+
+wire          IF_IC_pc_sgn;
+wire [31 : 0] IF_IC_pc;
+wire          IF_IS_ins_sgn;
+wire [31 : 0] IF_IS_ins;
+wire          IF_IS_jump_flag;
+wire [31 : 0] IF_IS_jump_pc;
+
+wire          IS_ROB_sgn;
+wire          IS_ROB_ready;
+wire [ 5 : 0] IS_ROB_opcode;
+wire [31 : 0] IS_ROB_value;
+wire [ 4 : 0] IS_ROB_dest;
+wire          IS_ROB_jumped;
+wire [31 : 0] IS_ROB_jumpto;
+wire          IS_RS_sgn;
+wire [ 5 : 0] IS_RS_opcode;
+wire [31 : 0] IS_RS_rs1_val;
+wire [31 : 0] IS_RS_rs2_val;
+wire          IS_RS_rs1_rdy;
+wire          IS_RS_rs2_rdy;
+wire          IS_LSB_sgn;
+wire [ 5 : 0] IS_LSB_opcode;
+wire [31 : 0] IS_LSB_adr_val;
+wire [31 : 0] IS_LSB_val_val;
+wire          IS_LSB_adr_rdy;
+wire          IS_LSB_val_rdy;
+wire [ 4 : 0] IS_REG_rs1;
+wire [ 4 : 0] IS_REG_rs2;
+wire          IS_REG_sgn;
+wire [ 4 : 0] IS_REG_rd;
+
+wire          ROB_IF_jp_wrong;
+wire [31 : 0] ROB_IF_jp_tar;
+wire [`ROBID] ROB_IS_ROB_name;
+wire [`ROBID] ROB_RS_ROB_name;
+wire [`ROBID] ROB_LSB_ROB_name;
+wire          ROB_LSB_commit_sgn;
+wire [`LSBID] ROB_LSB_commit_dest;
+wire [31 : 0] ROB_LSB_commit_value;
+wire [`ROBID] ROB_REG_ROB_name;
+wire          ROB_REG_rdy1;
+wire          ROB_REG_rdy2;
+wire [31 : 0] ROB_REG_val1;
+wire [31 : 0] ROB_REG_val2;
+wire          ROB_REG_commit_sgn;
+wire [`REGID] ROB_REG_commit_dest;
+wire [31 : 0] ROB_REG_commit_value;
+wire [`ROBID] ROB_REG_commit_ROB_name;
+wire          jp_wrong;
+
+wire          RS_IS_RS_full;
+wire          RS_ALU_sgn;
+wire [ 5 : 0] RS_ALU_opcode;
+wire [`ROBID] RS_ALU_name;
+wire [31 : 0] RS_ALU_lhs;
+wire [31 : 0] RS_ALU_rhs;
+
+wire          ALU_IF_sgn;
+wire [31 : 0] ALU_IF_pc;
+wire          CDBA_sgn;
+wire [31 : 0] CDBA_result;
+wire [`ROBID] CDBA_ROB_name;
+
+wire          LSB_IS_LSB_full;
+wire [`LSBID] LSB_IS_LSB_name;
+wire          LSB_DC_sgn;
+wire [31 : 0] LSB_DC_addr;
+wire [31 : 0] LSB_DC_val;
+wire [ 5 : 0] LSB_DC_opcode;
+
+wire           DC_LSB_sgn_out;
+wire           DC_MEM_sgn_out;
+wire [31 : 0]  DC_MEM_addr;
+wire [31 : 0]  DC_MEM_val_out;
+wire [ 5 : 0]  DC_MEM_opcode;
+wire           CDBD_sgn;
+wire [31 : 0]  CDBD_result;
+wire [`ROBID]  CDBD_ROB_name;
+
+wire [31 : 0] REG_IS_rs1_val;
+wire [31 : 0] REG_IS_rs2_val;
+wire          REG_IS_rs1_rdy;
+wire          REG_IS_rs2_rdy;
+wire [`ROBID] REG_ROB_ord1;
+wire [`ROBID] REG_ROB_ord2;
+
 MCtrl mctrl(
     .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
   
@@ -59,11 +150,6 @@ MCtrl mctrl(
     .io_buffer_full(io_buffer_full)
 );
 
-wire          IC_MC_addr_sgn;
-wire [31 : 0] IC_MC_addr;
-wire          IC_IF_val_sgn;
-wire [31 : 0] IC_IF_val;
-
 ICache icache(
     .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
 
@@ -79,13 +165,6 @@ ICache icache(
     .IF_val_sgn(IC_IF_val_sgn),
     .IF_val(IC_IF_val)
 );
-
-wire          IF_IC_pc_sgn;
-wire [31 : 0] IF_IC_pc;
-wire          IF_IS_ins_sgn;
-wire [31 : 0] IF_IS_ins;
-wire          IF_IS_jump_flag;
-wire [31 : 0] IF_IS_jump_pc;
 
 IFetcher ifetcher(
     .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
@@ -110,30 +189,6 @@ IFetcher ifetcher(
     .ROB_jp_wrong(ROB_IF_jp_wrong),
     .ROB_jp_tar(ROB_IF_jp_tar)
 );
-
-wire          IS_ROB_sgn;
-wire          IS_ROB_ready;
-wire [ 5 : 0] IS_ROB_opcode;
-wire [31 : 0] IS_ROB_value;
-wire [ 4 : 0] IS_ROB_dest;
-wire          IS_ROB_jumped;
-wire [31 : 0] IS_ROB_jumpto;
-wire          IS_RS_sgn;
-wire [ 5 : 0] IS_RS_opcode;
-wire [31 : 0] IS_RS_rs1_val;
-wire [31 : 0] IS_RS_rs2_val;
-wire          IS_RS_rs1_rdy;
-wire          IS_RS_rs2_rdy;
-wire          IS_LSB_sgn;
-wire [ 5 : 0] IS_LSB_opcode;
-wire [31 : 0] IS_LSB_adr_val;
-wire [31 : 0] IS_LSB_val_val;
-wire          IS_LSB_adr_rdy;
-wire          IS_LSB_val_rdy;
-wire [ 4 : 0] IS_REG_rs1;
-wire [ 4 : 0] IS_REG_rs2;
-wire          IS_REG_sgn;
-wire [ 4 : 0] IS_REG_rd;
 
 Issue issue(
     .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
@@ -183,25 +238,6 @@ Issue issue(
     .REG_sgn(IS_REG_sgn),
     .REG_rd(IS_REG_rd)
 );
-
-wire          ROB_IF_jp_wrong;
-wire [31 : 0] ROB_IF_jp_tar;
-wire [`ROBID] ROB_IS_ROB_name;
-wire [`ROBID] ROB_RS_ROB_name;
-wire [`ROBID] ROB_LSB_ROB_name;
-wire          ROB_LSB_commit_sgn;
-wire [`LSBID] ROB_LSB_commit_dest;
-wire [31 : 0] ROB_LSB_commit_value;
-wire [`ROBID] ROB_REG_ROB_name;
-wire          ROB_REG_rdy1;
-wire          ROB_REG_rdy2;
-wire [31 : 0] ROB_REG_val1;
-wire [31 : 0] ROB_REG_val2;
-wire          ROB_REG_commit_sgn;
-wire [`REGID] ROB_REG_commit_dest;
-wire [31 : 0] ROB_REG_commit_value;
-wire [`ROBID] ROB_REG_commit_ROB_name;
-wire          jp_wrong;
 
 ROB rob(
     .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
@@ -257,13 +293,6 @@ ROB rob(
     .jp_wrong(jp_wrong)
 );
 
-wire          RS_IS_RS_full;
-wire          RS_ALU_sgn;
-wire [ 5 : 0] RS_ALU_opcode;
-wire [`ROBID] RS_ALU_name;
-wire [31 : 0] RS_ALU_lhs;
-wire [31 : 0] RS_ALU_rhs;
-
 RS rs(
     .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
 
@@ -300,12 +329,6 @@ RS rs(
     .jp_wrong(jp_wrong)
 );
 
-wire          ALU_IF_sgn;
-wire [31 : 0] ALU_IF_pc;
-wire          CDBA_sgn;
-wire [31 : 0] CDBA_result;
-wire [`ROBID] CDBA_ROB_name;
-
 ALU alu(
     .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
 
@@ -325,13 +348,6 @@ ALU alu(
     .CDB_result(CDBA_result),
     .CDB_ROB_name(CDBA_ROB_name)
 );
-
-wire          LSB_IS_LSB_full;
-wire [`LSBID] LSB_IS_LSB_name;
-wire          LSB_DC_sgn;
-wire [31 : 0] LSB_DC_addr;
-wire [31 : 0] LSB_DC_val;
-wire [ 5 : 0] LSB_DC_opcode;
 
 LSB lsb(
     .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
@@ -373,15 +389,6 @@ LSB lsb(
     .jp_wrong(jp_wrong)
 );
 
-wire           DC_LSB_sgn_out;
-wire           DC_MEM_sgn_out;
-wire [31 : 0]  DC_MEM_addr;
-wire [31 : 0]  DC_MEM_val_out;
-wire [ 5 : 0]  DC_MEM_opcode;
-wire           CDBD_sgn;
-wire [31 : 0]  CDBD_result;
-wire [`ROBID]  CDBD_ROB_name;
-
 DCache dcache(
     .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
 
@@ -405,13 +412,6 @@ DCache dcache(
     .CDBD_result(CDBD_result),
     .CDBD_ROB_name(CDBD_ROB_name)
 );
-
-wire [31 : 0] REG_IS_rs1_val;
-wire [31 : 0] REG_IS_rs2_val;
-wire          REG_IS_rs1_rdy;
-wire          REG_IS_rs2_rdy;
-wire [`ROBID] REG_ROB_ord1;
-wire [`ROBID] REG_ROB_ord2;
 
 REG Reg(
     .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
