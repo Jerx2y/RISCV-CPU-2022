@@ -29,7 +29,6 @@ module Issue (
     output reg              RS_rs2_rdy,
 
     // LSB
-    input wire              LSB_full,
     input wire   [`LSBID]   LSB_name,
     output reg              LSB_sgn,
     output reg   [ 5 : 0]   LSB_opcode,
@@ -53,7 +52,7 @@ module Issue (
     reg [31 : 0] ins, jump_pc;
     reg          jump_flag;
 
-    wire [6 : 0] op;
+    wire [6 : 0] op     =  ins[ 6 :  0];
     wire [4 : 0] rs1    =  ins[19 : 15];
     wire [4 : 0] rs2    =  ins[24 : 20];
     wire [4 : 0] rd     =  ins[11 :  7];
@@ -66,7 +65,11 @@ module Issue (
     assign REG_rd  = rd;
 
     always @(*) begin
-        if (ROB_sgn) begin
+        if (rst) begin
+            RS_sgn = `False;
+            LSB_sgn = `False;
+            REG_sgn = `False;
+        end else if (ROB_sgn) begin
             case (op)
                 `LUIOP: begin
                     imm = {ins[31:12], 12'b0};                                 
@@ -310,6 +313,10 @@ module Issue (
                     REG_sgn = `True;
                 end
             endcase
+        end else begin
+            RS_sgn = `False;
+            LSB_sgn = `False;
+            REG_sgn = `False;
         end
     end
 

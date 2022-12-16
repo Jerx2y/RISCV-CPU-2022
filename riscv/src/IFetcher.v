@@ -21,7 +21,11 @@ module IFetcher (
 
     // ROB
     input  wire          ROB_jp_wrong,
-    input  wire [31 : 0] ROB_jp_tar
+    input  wire [31 : 0] ROB_jp_tar,
+    input  wire          ROB_full,
+
+    // LSB
+    input  wire          LSB_full
 );
 
     wire [31 : 0]   ins = IC_ins;
@@ -36,7 +40,7 @@ module IFetcher (
 
     assign IS_ins_sgn = IC_ins_sgn;
     assign IS_ins = IC_ins;
-    assign IC_pc_sgn = !IF_stall;
+    assign IC_pc_sgn = !IF_stall && !ROB_full && !LSB_full;
     assign IC_pc = next_pc;
 
     always @(*) begin

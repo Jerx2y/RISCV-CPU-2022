@@ -6,6 +6,7 @@ module ROB (
     // IFetcher
     output wire             IF_jp_wrong,
     output reg   [31 : 0]   IF_jp_tar,
+    output wire             IF_ROB_full,
 
     // Issue
     input  wire             IS_sgn,
@@ -74,67 +75,8 @@ module ROB (
     assign REG_val2     = value[REG_ord2];
 
     assign IF_jp_wrong  = jp_wrong;
+    assign IF_ROB_full  = (front == (-(~rear)));
 
-    always @(*) begin // commit
-        if (ready[front]) begin
-            REG_commit_dest     = dest[front];
-            REG_commit_value    = value[front];
-            REG_commit_ROB_name = front;
-            LSB_commit_dest     = dest[front][`LSBID];
-            LSB_commit_value    = value[front];
-
-            case (opcode[front])
-                `LUI: begin
-                    jp_wrong = `False;
-                    REG_commit_sgn = `True;
-                    LSB_commit_sgn = `False;
-                end
-                `AUIPC: begin
-                    jp_wrong = `False;
-                    REG_commit_sgn = `True;
-                    LSB_commit_sgn = `False;
-                end
-                `JAL: begin
-                    jp_wrong = `False;
-                    REG_commit_sgn = `True;
-                    LSB_commit_sgn = `False;
-                end
-                `JALR: begin
-                    jp_wrong = `False;
-                    REG_commit_sgn = `True;
-                    LSB_commit_sgn = `False;
-                end
-                `BTYPE: begin
-                    jp_wrong = jumped[front] != value[front][0];
-                    REG_commit_sgn = `False;
-                    LSB_commit_sgn = `False;
-                    IF_jp_tar = jumpto[front];
-                end
-                `LTYPE: begin
-                    jp_wrong = `False;
-                    REG_commit_sgn = `True;
-                    LSB_commit_sgn = `False;
-                end
-                `STYPE: begin
-                    jp_wrong = `False;
-                    REG_commit_sgn = `False;
-                    LSB_commit_sgn = `True;
-                end
-                `ITYPE: begin
-                    jp_wrong = `False;
-                    REG_commit_sgn = `True;
-                    LSB_commit_sgn = `False;
-                end
-                `RTYPE: begin
-                    jp_wrong = `False;
-                    REG_commit_sgn = `True;
-                    LSB_commit_sgn = `False;
-                end
-            endcase
-        end
-    
-    end
-    
     always @(posedge clk) begin
         if (rst) begin
             front <= 0;
@@ -167,11 +109,70 @@ module ROB (
                 value[CDBD_ROB_name] <= CDBD_result;
             end
 
+            // commit
             if (ready[front]) begin
                 ready[front] <= `False;
                 front <= -(~front);
-            end
 
+                REG_commit_dest     <= dest[front];
+                REG_commit_value    <= value[front];
+                REG_commit_ROB_name <= front;
+                LSB_commit_dest     <= dest[front][`LSBID];
+                LSB_commit_value    <= value[front];
+
+                case (opcode[front])
+                    `LUI: begin
+                        jp_wrong <= `False;
+                        REG_commit_sgn <= `True;
+                        LSB_commit_sgn <= `False;
+                    end
+                    `AUIPC: begin
+                        jp_wrong <= `False;
+                        REG_commit_sgn <= `True;
+                        LSB_commit_sgn <= `False;
+                    end
+                    `JAL: begin
+                        jp_wrong <= `False;
+                        REG_commit_sgn <= `True;
+                        LSB_commit_sgn <= `False;
+                    end
+                    `JALR: begin
+                        jp_wrong <= `False;
+                        REG_commit_sgn <= `True;
+                        LSB_commit_sgn <= `False;
+                    end
+                    `BTYPE: begin
+                        jp_wrong <= jumped[front] != value[front][0];
+                        REG_commit_sgn <= `False;
+                        LSB_commit_sgn <= `False;
+                        IF_jp_tar <= jumpto[front];
+                    end
+                    `LTYPE: begin
+                        jp_wrong <= `False;
+                        REG_commit_sgn <= `True;
+                        LSB_commit_sgn <= `False;
+                    end
+                    `STYPE: begin
+                        jp_wrong <= `False;
+                        REG_commit_sgn <= `False;
+                        LSB_commit_sgn <= `True;
+                    end
+                    `ITYPE: begin
+                        jp_wrong <= `False;
+                        REG_commit_sgn <= `True;
+                        LSB_commit_sgn <= `False;
+                    end
+                    `RTYPE: begin
+                        jp_wrong <= `False;
+                        REG_commit_sgn <= `True;
+                        LSB_commit_sgn <= `False;
+                    end
+                endcase
+            end else begin
+                REG_commit_sgn <= `False;
+                LSB_commit_sgn <= `False;
+            end
+    
         end
     end
     

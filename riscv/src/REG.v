@@ -39,25 +39,26 @@ module REG (
     assign IS_rs1_rdy = reg_rdy[IS_rs1] || ROB_rdy1;
     assign IS_rs2_rdy = reg_rdy[IS_rs2] || ROB_rdy2;
 
-    always @(*) begin
-        if (ROB_commit_sgn)
-            if (!reg_rdy[ROB_commit_dest] && reg_ord[ROB_commit_dest] == ROB_commit_ROB_name) begin
-                reg_rdy[ROB_commit_dest] = `True;
-                reg_val[ROB_commit_dest] = ROB_commit_value;
-            end
-        if (IS_sgn) begin
-            reg_rdy[IS_rd] = `False;
-            reg_ord[IS_rd] = ROB_name;
-        end
-    end
+    integer i;
 
     always @(posedge clk) begin
         if (rst) begin
-            
+            for (i = 0; i < 32; i = i + 1) begin
+                reg_val[i] <= 0;
+                reg_rdy[i] <= `True;
+            end
         end else if (!rdy) begin
             
         end else begin
-            
+            if (IS_sgn) begin
+                reg_rdy[IS_rd] <= `False;
+                reg_ord[IS_rd] <= ROB_name;
+            end else if (ROB_commit_sgn) begin
+                if (!reg_rdy[ROB_commit_dest] && reg_ord[ROB_commit_dest] == ROB_commit_ROB_name) begin
+                    reg_rdy[ROB_commit_dest] <= `True;
+                    reg_val[ROB_commit_dest] <= ROB_commit_value;
+                end
+            end
         end
     end
 

@@ -3,6 +3,9 @@
 module LSB (
     input wire             clk, rst, rdy,
 
+    // IF
+    output wire            IF_LSB_full,
+
     // ISSUE
     input wire             IS_sgn,
     input wire  [ 5 : 0]   IS_opcode,
@@ -10,7 +13,6 @@ module LSB (
     input wire  [31 : 0]   IS_val_val,
     input wire             IS_adr_rdy,
     input wire             IS_val_rdy,
-    output wire            IS_LSB_full,
     output wire [`LSBID]   IS_LSB_name,
 
     // ROB
@@ -55,6 +57,8 @@ module LSB (
     assign DC_val      = val_val[front];
     assign DC_opcode   = opcode[front];
 
+    assign IF_LSB_full = (front == -(~rear));
+
     integer i;
 
     always @(*) begin
@@ -87,9 +91,6 @@ module LSB (
                 DC_sgn <= `True;
                 if (DC_sgn_in) begin
                     front <= -(~front);
-                    ;
-                end else begin
-                    ;
                 end
             end else begin
                 DC_sgn <= `False;
