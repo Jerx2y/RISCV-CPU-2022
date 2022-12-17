@@ -99,7 +99,7 @@ module IFetcher (
             pc <= 0;
         end else if (!rdy) begin
             
-        end else if (IC_ins_sgn) begin
+        end else if (IC_ins_sgn || ALU_sgn) begin
             pc <= next_pc;
         end
     end

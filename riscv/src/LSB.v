@@ -81,16 +81,20 @@ module LSB (
 
                 opcode[rear]  <= IS_opcode;
                 name[rear]    <= ROB_name;
+                adr_rdy[rear] <= IS_adr_rdy;
                 adr_val[rear] <= IS_adr_val;
                 val_rdy[rear] <= IS_val_rdy;
-                adr_val[rear] <= IS_adr_val;
-                val_rdy[rear] <= IS_val_rdy;
+                val_val[rear] <= IS_val_val;
+
             end
 
             if (adr_rdy[front] && val_rdy[front]) begin
-                DC_sgn <= `True;
-                if (DC_sgn_in) begin
+                // $display(front, "#", DC_sgn_in);
+                if (DC_sgn_in) begin // TODO: 需要 DC_sgn_in 及时变回去 
                     front <= -(~front);
+                    DC_sgn <= `False;
+                end else begin
+                    DC_sgn <= `True;
                 end
             end else begin
                 DC_sgn <= `False;

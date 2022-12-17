@@ -53,7 +53,8 @@ module REG (
             if (IS_sgn) begin
                 reg_rdy[IS_rd] <= `False;
                 reg_ord[IS_rd] <= ROB_name;
-            end else if (ROB_commit_sgn) begin
+            end
+            if (ROB_commit_sgn) begin
                 if (!reg_rdy[ROB_commit_dest] && reg_ord[ROB_commit_dest] == ROB_commit_ROB_name) begin
                     reg_rdy[ROB_commit_dest] <= `True;
                     reg_val[ROB_commit_dest] <= ROB_commit_value;

@@ -39,11 +39,8 @@ module MCtrl (
             mem_dout = 0;
             mem_rw = 0;
         end else begin
-            if (ins_sgn_in) begin
-                mem_a = ins_addr + ins_offset;
-                mem_dout = 0;
-                mem_rw = 0;
-            end else if (dat_sgn_in) begin
+            // $display("*", ins_now, " ", dat_now, " ", ins_sgn_in, " ", dat_sgn_in, " ", mem_a);
+            if (dat_sgn_in) begin
                 mem_a = dat_addr + dat_offset;
                 case (dat_opcode)
                     `LB, `LH, `LW, `LBU, `LHU: begin
@@ -60,6 +57,14 @@ module MCtrl (
                         mem_rw = 1;
                     end
                 endcase
+            end else if (ins_sgn_in) begin // 各种原因导致这个地方 ins_sgn_in 为 false 且 dat_sgn_in 为 true，但是下面posedge处两者都为 true，从而这里执行而下面未执行。 感觉换位置就行了
+                mem_a = ins_addr + ins_offset;
+                mem_dout = 0;
+                mem_rw = 0;
+            end else begin
+                mem_a = 0;
+                mem_dout = 0;
+                mem_rw = 0;
             end
         end
     end
@@ -87,17 +92,8 @@ module MCtrl (
         end else if (!rdy) begin
             
         end else begin
-            if (ins_now) begin
-                dat_sgn_out <= `False;
-                ins_sgn_out <= (ins_offset == 2'b11);
-                ins_now <= (ins_offset != 2'b11);
-                ins_offset <= -(~ins_offset);
-                case (ins_offset)
-                    2'b01: ins_tmp[ 7 :  0] <= mem_din;
-                    2'b10: ins_tmp[15 :  8] <= mem_din;
-                    2'b11: ins_tmp[23 : 16] <= mem_din;
-                endcase
-            end else if (dat_now) begin
+            if (dat_now) begin // 必须先判断 data 
+                // $display("@", ins_now, " ", dat_now, " ", ins_sgn_in, " ", dat_sgn_in, " ", mem_a);
                 ins_sgn_out <= `False;
                 case (dat_opcode)
                     `LH, `LHU: begin
@@ -128,12 +124,19 @@ module MCtrl (
                     end
                 endcase
 
-            end else if (ins_sgn_in) begin
+            end else if (ins_now) begin
+                // $display("!", ins_now, " ", dat_now, " ", ins_sgn_in, " ", dat_sgn_in, " ", mem_a);
                 dat_sgn_out <= `False;
-                ins_sgn_out <= `False;
+                ins_sgn_out <= (ins_offset == 2'b11);
+                ins_now <= (ins_offset != 2'b11);
                 ins_offset <= -(~ins_offset);
-                ins_now <= `True;
+                case (ins_offset)
+                    2'b01: ins_tmp[ 7 :  0] <= mem_din;
+                    2'b10: ins_tmp[15 :  8] <= mem_din;
+                    2'b11: ins_tmp[23 : 16] <= mem_din;
+                endcase
             end else if (dat_sgn_in) begin
+                // $display("#", ins_now, " ", dat_now, " ", ins_sgn_in, " ", dat_sgn_in, " ", mem_a);
                 ins_sgn_out <= `False;
                 case (dat_opcode)
                     `LB, `LBU: dat_sgn_out <= `True;
@@ -142,15 +145,26 @@ module MCtrl (
                         dat_now     <= `True;
                         dat_offset  <= -(~dat_offset);
                     end
+                    `SB: begin
+                        dat_sgn_out <= `True;
+                    end
                     `SH, `SW: begin
                         dat_sgn_out <= `False;
                         dat_now     <= `True;
                         dat_offset  <= -(~dat_offset);
                     end
                 endcase
+            end else if (ins_sgn_in) begin
+                // $display(":", ins_now, " ", dat_now, " ", ins_sgn_in, " ", dat_sgn_in, " ", mem_a);
+                dat_sgn_out <= `False;
+                ins_sgn_out <= `False;
+                ins_offset <= -(~ins_offset);
+                ins_now <= `True;
             end else begin
                 ins_sgn_out <= `False;
                 dat_sgn_out <= `False;
+                ins_now <= `False;
+                dat_now <= `False;
             end
         end
     end
