@@ -89,7 +89,7 @@ module LSB (
             end
 
             if (adr_rdy[front] && val_rdy[front]) begin
-                // $display(front, "#", DC_sgn_in);
+                // $display(front, "#", DC_sgn_in, "@", DC_addr);
                 if (DC_sgn_in) begin // TODO: 需要 DC_sgn_in 及时变回去 
                     front <= -(~front);
                     DC_sgn <= `False;

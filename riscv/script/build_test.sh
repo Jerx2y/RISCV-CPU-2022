@@ -1,14 +1,14 @@
 #!/bin/sh
 set -e
-prefix='/opt/riscv'
+prefix='/home/je/toolchain/riscv/'
 rpath=$prefix/bin/
 # clearing test dir
 rm -rf ./test
 mkdir ./test
 # compiling rom
-${rpath}riscv32-unknown-elf-as -o ./sys/rom.o -march=rv32i ./sys/rom.s
+#${rpath}riscv32-unknown-elf-as -o ./sys/rom.o -march=rv32i ./sys/rom.s
 # compiling testcase
-cp ./testcase/${1%.*}.c ./test/test.c
+#cp ./testcase/${1%.*}.c ./test/test.c
 ${rpath}riscv32-unknown-elf-gcc -o ./test/test.o -I ./sys -c ./test/test.c -O2 -march=rv32i -mabi=ilp32 -Wall
 # linking
 ${rpath}riscv32-unknown-elf-ld -T ./sys/memory.ld ./sys/rom.o ./test/test.o -L $prefix/riscv32-unknown-elf/lib/ -L $prefix/lib/gcc/riscv32-unknown-elf/8.2.0/ -lc -lgcc -lm -lnosys -o ./test/test.om
