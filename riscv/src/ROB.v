@@ -17,6 +17,7 @@ module ROB (
     input  wire             IS_jumped,
     input  wire  [31 : 0]   IS_jumpto,
     output wire  [`ROBID]   IS_ROB_name,
+    output wire             IS_ROB_full,
 
     // RS
     output wire  [`ROBID]   RS_ROB_name,
@@ -63,6 +64,7 @@ module ROB (
     reg [31 : 0]    jumpto   [`ROBSZ];
 
     reg [`ROBID]    front, rear;
+    reg             full;
 
     assign RS_ROB_name  = rear;
     assign IS_ROB_name  = rear;
@@ -75,7 +77,8 @@ module ROB (
     assign REG_val2     = value[REG_ord2];
 
     assign IF_jp_wrong  = jp_wrong;
-    assign IF_ROB_full  = (front == (-(~rear)));
+    assign IF_ROB_full  = ready[front] ? (full && IS_sgn) : (full || (IS_sgn && front == -(~rear)));
+    assign IS_ROB_full  = ready[front] ? (full && IS_sgn) : (full || (IS_sgn && front == -(~rear)));
 
     integer i;
 
@@ -84,9 +87,11 @@ module ROB (
             front <= 0;
             rear  <= 0;
             ready <= 0;
+            full  <= `False;
         end else if (!rdy) begin
 
         end else begin
+            full <= ready[front] ? (full && IS_sgn) : (full || (IS_sgn && front == -(~rear)));
 
             if (IS_sgn) begin
                 rear <= -(~rear);
@@ -128,7 +133,7 @@ module ROB (
 
             // commit
             // $display(front, " ", rear, " @ ", opcode[front], " ", dest[front]);
-            if (front != rear && ready[front]) begin
+            if ((full || front != rear) && ready[front]) begin
                 // ready[front] <= `False;
                 front <= -(~front);
 

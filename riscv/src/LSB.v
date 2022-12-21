@@ -91,7 +91,7 @@ module LSB (
             end
 
             // commit
-            $display(front, " ", adr_rdy[front], " ", val_rdy[front]);
+            // $display(front, " ", adr_rdy[front], " ", val_rdy[front]);
             if (adr_rdy[front] && val_rdy[front]) begin
                 // $display(front, "#", DC_sgn_in, "@", DC_addr);
 

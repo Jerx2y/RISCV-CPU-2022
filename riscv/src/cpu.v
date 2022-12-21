@@ -74,6 +74,7 @@ wire          ROB_IF_jp_wrong;
 wire [31 : 0] ROB_IF_jp_tar;
 wire          ROB_IF_ROB_full;
 wire [`ROBID] ROB_IS_ROB_name;
+wire          ROB_IS_ROB_full;
 wire [`ROBID] ROB_RS_ROB_name;
 wire [`ROBID] ROB_LSB_ROB_name;
 wire          ROB_LSB_commit_sgn;
@@ -206,6 +207,7 @@ Issue issue(
 
     // ROB
     .ROB_name(ROB_IS_ROB_name),
+    .ROB_full(ROB_IS_ROB_full),
     .ROB_sgn(IS_ROB_sgn),
     .ROB_ready(IS_ROB_ready),
     .ROB_opcode(IS_ROB_opcode),
@@ -260,6 +262,7 @@ ROB rob(
     .IS_jumped(IS_ROB_jumped),
     .IS_jumpto(IS_ROB_jumpto),
     .IS_ROB_name(ROB_IS_ROB_name),
+    .IS_ROB_full(ROB_IS_ROB_full),
 
     // RS
     .RS_ROB_name(ROB_RS_ROB_name),

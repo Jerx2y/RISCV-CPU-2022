@@ -11,6 +11,7 @@ module Issue (
 
     // ROB
     input wire   [`ROBID]   ROB_name,
+    input wire              ROB_full,
     output reg              ROB_sgn,
     output reg              ROB_ready,
     output reg   [ 5 : 0]   ROB_opcode,
@@ -86,33 +87,33 @@ module Issue (
             REG_sgn = `False;
         end else if (ROB_sgn) begin
 
-            if (REG_rs1_rdy) begin
-                rs1_rdy = `True;
-                rs1_val = REG_rs1_val;
-            end else if (CDBA_sgn && CDBA_ROB_name == REG_rs1_val[`ROBID]) begin
-                rs1_rdy = `True;
-                rs1_val = CDBA_result;
-            end else if (CDBD_sgn && CDBD_ROB_name == REG_rs1_val[`ROBID]) begin
-                rs1_rdy = `True;
-                rs1_val = CDBD_result;
-            end else begin
-                rs1_rdy = `False;
-                rs1_val = REG_rs1_val;
-            end
+                if (REG_rs1_rdy) begin
+                    rs1_rdy = `True;
+                    rs1_val = REG_rs1_val;
+                end else if (CDBA_sgn && CDBA_ROB_name == REG_rs1_val[`ROBID]) begin
+                    rs1_rdy = `True;
+                    rs1_val = CDBA_result;
+                end else if (CDBD_sgn && CDBD_ROB_name == REG_rs1_val[`ROBID]) begin
+                    rs1_rdy = `True;
+                    rs1_val = CDBD_result;
+                end else begin
+                    rs1_rdy = `False;
+                    rs1_val = REG_rs1_val;
+                end
 
-            if (REG_rs2_rdy) begin
-                rs2_rdy = `True;
-                rs2_val = REG_rs2_val;
-            end else if (CDBA_sgn && CDBA_ROB_name == REG_rs2_val[`ROBID]) begin
-                rs2_rdy = `True;
-                rs2_val = CDBA_result;
-            end else if (CDBD_sgn && CDBD_ROB_name == REG_rs2_val[`ROBID]) begin
-                rs2_rdy = `True;
-                rs2_val = CDBD_result;
-            end else begin
-                rs2_rdy = `False;
-                rs2_val = REG_rs2_val;
-            end
+                if (REG_rs2_rdy) begin
+                    rs2_rdy = `True;
+                    rs2_val = REG_rs2_val;
+                end else if (CDBA_sgn && CDBA_ROB_name == REG_rs2_val[`ROBID]) begin
+                    rs2_rdy = `True;
+                    rs2_val = CDBA_result;
+                end else if (CDBD_sgn && CDBD_ROB_name == REG_rs2_val[`ROBID]) begin
+                    rs2_rdy = `True;
+                    rs2_val = CDBD_result;
+                end else begin
+                    rs2_rdy = `False;
+                    rs2_val = REG_rs2_val;
+                end
 
             case (op)
                 `LUIOP: begin
@@ -375,6 +376,8 @@ module Issue (
                 ins <= IF_ins;
                 jump_pc <= IF_jump_pc;
                 jump_flag <= IF_jump_flag;
+
+
             end else begin
                 ROB_sgn <= `False;
             end
