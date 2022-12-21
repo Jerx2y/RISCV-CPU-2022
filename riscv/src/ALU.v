@@ -74,6 +74,7 @@ module ALU (
             end
         end else begin
             sgn = `False;
+            IF_sgn = `False;
         end
     end
 

@@ -77,6 +77,8 @@ module ROB (
     assign IF_jp_wrong  = jp_wrong;
     assign IF_ROB_full  = (front == (-(~rear)));
 
+    integer i;
+
     always @(posedge clk) begin
         if (rst) begin
             front <= 0;
@@ -85,8 +87,11 @@ module ROB (
         end else if (!rdy) begin
 
         end else begin
+
             if (IS_sgn) begin
                 rear <= -(~rear);
+
+                // $display("#", IS_ready, " ", IS_opcode, " ", rear, " ##", ready[6]);
 
                 ready[rear] <= IS_ready;
                 value[rear] <= IS_value;
@@ -97,9 +102,15 @@ module ROB (
         
             // CDB of ALU
             if (CDBA_sgn) begin
-                if (opcode[CDBA_ROB_name] != `LTYPE) begin // without load instruction
+                if (opcode[CDBA_ROB_name] != `LTYPE && opcode[CDBA_ROB_name] != `STYPE) begin // without l/s instruction
                     ready[CDBA_ROB_name] <= `True;
                     value[CDBA_ROB_name] <= CDBA_result;
+                end
+                for (i = 0; i < `ROBSI; i = i + 1) begin
+                    if (opcode[i] == `STYPE && !ready[i] && value[i][3 : 0] == CDBA_ROB_name) begin
+                        ready[i] <= `True;
+                        value[i] <= CDBA_result;
+                    end
                 end
             end
 
@@ -107,11 +118,18 @@ module ROB (
             if (CDBD_sgn) begin
                 ready[CDBD_ROB_name] <= `True;
                 value[CDBD_ROB_name] <= CDBD_result;
+                for (i = 0; i < `ROBSI; i = i + 1) begin
+                    if (opcode[i] == `STYPE && !ready[i] && value[i][3 : 0] == CDBD_ROB_name) begin
+                        ready[i] <= `True;
+                        value[i] <= CDBD_result;
+                    end
+                end
             end
 
             // commit
-            if (ready[front]) begin
-                ready[front] <= `False;
+            // $display(front, " ", rear, " @ ", opcode[front], " ", dest[front]);
+            if (front != rear && ready[front]) begin
+                // ready[front] <= `False;
                 front <= -(~front);
 
                 REG_commit_dest     <= dest[front];
@@ -169,6 +187,7 @@ module ROB (
                     end
                 endcase
             end else begin
+                jp_wrong <= `False;
                 REG_commit_sgn <= `False;
                 LSB_commit_sgn <= `False;
             end

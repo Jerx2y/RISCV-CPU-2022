@@ -45,7 +45,17 @@ module Issue (
     output wire  [ 4 : 0]   REG_rs1,
     output wire  [ 4 : 0]   REG_rs2,
     output reg              REG_sgn,
-    output wire  [ 4 : 0]   REG_rd
+    output wire  [ 4 : 0]   REG_rd,
+
+    // CDBA
+    input  wire             CDBA_sgn,
+    input  wire  [31 : 0]   CDBA_result,
+    input  wire  [`ROBID]   CDBA_ROB_name,
+
+    // CDBD
+    input  wire             CDBD_sgn,
+    input  wire  [31 : 0]   CDBD_result,
+    input  wire  [`ROBID]   CDBD_ROB_name
 );
 
     reg [31 : 0] imm;
@@ -60,6 +70,11 @@ module Issue (
     wire [6 : 0] func7  =  ins[31 : 25];
     wire [4 : 0] shamt  =  ins[24 : 20];
 
+    reg          rs1_rdy;
+    reg          rs2_rdy;
+    reg [31 : 0] rs1_val;
+    reg [31 : 0] rs2_val;
+
     assign REG_rs1 = rs1;
     assign REG_rs2 = rs2;
     assign REG_rd  = rd;
@@ -70,6 +85,35 @@ module Issue (
             LSB_sgn = `False;
             REG_sgn = `False;
         end else if (ROB_sgn) begin
+
+            if (REG_rs1_rdy) begin
+                rs1_rdy = `True;
+                rs1_val = REG_rs1_val;
+            end else if (CDBA_sgn && CDBA_ROB_name == REG_rs1_val[`ROBID]) begin
+                rs1_rdy = `True;
+                rs1_val = CDBA_result;
+            end else if (CDBD_sgn && CDBD_ROB_name == REG_rs1_val[`ROBID]) begin
+                rs1_rdy = `True;
+                rs1_val = CDBD_result;
+            end else begin
+                rs1_rdy = `False;
+                rs1_val = REG_rs1_val;
+            end
+
+            if (REG_rs2_rdy) begin
+                rs2_rdy = `True;
+                rs2_val = REG_rs2_val;
+            end else if (CDBA_sgn && CDBA_ROB_name == REG_rs2_val[`ROBID]) begin
+                rs2_rdy = `True;
+                rs2_val = CDBA_result;
+            end else if (CDBD_sgn && CDBD_ROB_name == REG_rs2_val[`ROBID]) begin
+                rs2_rdy = `True;
+                rs2_val = CDBD_result;
+            end else begin
+                rs2_rdy = `False;
+                rs2_val = REG_rs2_val;
+            end
+
             case (op)
                 `LUIOP: begin
                     imm = {ins[31:12], 12'b0};                                 
@@ -116,8 +160,8 @@ module Issue (
 
                     RS_sgn = `True;
                     RS_opcode = `JALR;
-                    RS_rs1_val = REG_rs1_val;
-                    RS_rs1_rdy = REG_rs1_rdy;
+                    RS_rs1_val = rs1_val;
+                    RS_rs1_rdy = rs1_rdy;
                     RS_rs2_val = imm;
                     RS_rs2_rdy = `True;
 
@@ -141,10 +185,10 @@ module Issue (
                         3'b111: RS_opcode = `BGEU;  // BGEU
                     endcase
                     RS_sgn     = `True;
-                    RS_rs1_val = REG_rs1_val;
-                    RS_rs1_rdy = REG_rs1_rdy;
-                    RS_rs2_val = REG_rs2_val;
-                    RS_rs2_rdy = REG_rs2_rdy;
+                    RS_rs1_val = rs1_val;
+                    RS_rs1_rdy = rs1_rdy;
+                    RS_rs2_val = rs2_val;
+                    RS_rs2_rdy = rs2_rdy;
 
                     LSB_sgn    = `False;
 
@@ -165,8 +209,8 @@ module Issue (
                         3'b101: LSB_opcode = `LHU;
                     endcase
                     RS_sgn      = `True;
-                    RS_rs1_val  = REG_rs1_val;
-                    RS_rs1_rdy  = REG_rs1_rdy;
+                    RS_rs1_val  = rs1_val;
+                    RS_rs1_rdy  = rs1_rdy;
                     RS_rs2_val  = imm;
                     RS_rs2_rdy  = `True;
                     RS_opcode   = `ADD;
@@ -191,8 +235,8 @@ module Issue (
                         3'b010: LSB_opcode = `SW;
                     endcase
                     RS_sgn     = `True;
-                    RS_rs1_val = REG_rs1_val;
-                    RS_rs1_rdy = REG_rs1_rdy;
+                    RS_rs1_val = rs1_val;
+                    RS_rs1_rdy = rs1_rdy;
                     RS_rs2_val = imm;
                     RS_rs2_rdy = `True;
                     RS_opcode  = `ADD;
@@ -204,8 +248,8 @@ module Issue (
 
                     ROB_dest    = LSB_name;
                     ROB_opcode  = `STYPE;
-                    ROB_value   = REG_rs2_val;
-                    ROB_ready   = REG_rs2_rdy;
+                    ROB_value   = rs2_val;
+                    ROB_ready   = rs2_rdy;
 
                     REG_sgn = `False;
                 end
@@ -251,8 +295,8 @@ module Issue (
                         end
                     endcase
                     RS_sgn = `True;
-                    RS_rs1_val = REG_rs1_val;
-                    RS_rs1_rdy = REG_rs1_rdy;
+                    RS_rs1_val = rs1_val;
+                    RS_rs1_rdy = rs1_rdy;
                     RS_rs2_rdy = `True;
 
                     LSB_sgn = `False;
@@ -299,10 +343,10 @@ module Issue (
                         end
                     endcase
                     RS_sgn = `True;
-                    RS_rs1_val = REG_rs1_val;
-                    RS_rs1_rdy = REG_rs1_rdy;
-                    RS_rs2_val = REG_rs2_val;
-                    RS_rs2_rdy = REG_rs2_rdy;
+                    RS_rs1_val = rs1_val;
+                    RS_rs1_rdy = rs1_rdy;
+                    RS_rs2_val = rs2_val;
+                    RS_rs2_rdy = rs2_rdy;
 
                     LSB_sgn = `False;
 

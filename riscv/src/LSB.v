@@ -65,6 +65,8 @@ module LSB (
         if (ROB_commit_sgn) begin
             val_rdy[ROB_commit_dest] = `True;
             val_val[ROB_commit_dest] = ROB_commit_value;
+            // if (opcode[ROB_commit_dest] == `SB && adr_val[ROB_commit_dest] == 196608)
+            //     $display("#", val_val[ROB_commit_dest]);
         end
     end
 
@@ -88,9 +90,19 @@ module LSB (
 
             end
 
+            // commit
+            $display(front, " ", adr_rdy[front], " ", val_rdy[front]);
             if (adr_rdy[front] && val_rdy[front]) begin
                 // $display(front, "#", DC_sgn_in, "@", DC_addr);
+
+                // if (opcode[front] == `SB && adr_val[front] == 196608)
+                //     $display("@", val_val[front],"@");
+
                 if (DC_sgn_in) begin // TODO: 需要 DC_sgn_in 及时变回去 
+
+                //    if (opcode[front] == `SB && adr_val[front] == 196608)
+                //        $display("ok");
+
                     front <= -(~front);
                     DC_sgn <= `False;
                 end else begin
@@ -102,10 +114,10 @@ module LSB (
 
             if (CDBA_sgn) begin
                 for (i = 0; i < `LSBSI; i = i + 1) begin
-                    if (!val_rdy[i] && val_val[i][`ROBID] == CDBA_ROB_name) begin
-                        val_rdy[i] <= `True;
-                        val_val[i] <= CDBA_result;
-                    end
+                    // if (!val_rdy[i] && val_val[i][`ROBID] == CDBA_ROB_name) begin
+                    //     val_rdy[i] <= `True;
+                    //     val_val[i] <= CDBA_result;
+                    // end
                     if (!adr_rdy[i] && adr_val[i][`ROBID] == CDBA_ROB_name) begin
                         adr_rdy[i] <= `True;
                         adr_val[i] <= CDBA_result;
@@ -113,13 +125,13 @@ module LSB (
                 end
             end
 
-            if (CDBD_sgn) begin
-                for (i = 0; i < `LSBSI; i = i + 1)
-                    if (!val_rdy[i] && val_val[i][`ROBID] == CDBD_ROB_name) begin
-                        val_rdy[i] <= `True;
-                        val_val[i] <= CDBD_result;
-                    end
-            end
+            // if (CDBD_sgn) begin
+            //     for (i = 0; i < `LSBSI; i = i + 1)
+            //         if (!val_rdy[i] && val_val[i][`ROBID] == CDBD_ROB_name) begin
+            //             val_rdy[i] <= `True;
+            //             val_val[i] <= CDBD_result;
+            //         end
+            // end
 
         end
     end

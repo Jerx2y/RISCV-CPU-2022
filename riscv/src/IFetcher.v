@@ -38,7 +38,7 @@ module IFetcher (
 
     reg             IF_stall;
 
-    assign IS_ins_sgn = IC_ins_sgn;
+    assign IS_ins_sgn = IC_ins_sgn && !ROB_full;
     assign IS_ins = IC_ins;
     assign IC_pc_sgn = !IF_stall && !ROB_full && !LSB_full;
     assign IC_pc = next_pc;
@@ -58,7 +58,7 @@ module IFetcher (
         end else if (ROB_jp_wrong) begin
             next_pc = ROB_jp_tar;
             IF_stall = `False;
-        end else if (IC_ins_sgn) begin
+        end else if (IC_ins_sgn && !ROB_full) begin
             if (op == `BROP) begin
                 if (BHB[pc[`BHBID]][1]) begin
                     next_pc = pc + imm;

@@ -16,8 +16,6 @@
 
 - [x] Issue
 
-  - 关于 JALR 的处理： 丢给 ALU 算完以后直接发给 PC
-
 - [x] RoB
 
 - [x] RS
@@ -30,12 +28,6 @@
 
 - [x] Reg
 
-- [ ] cpu.v
+- [x] cpu.v
 
-## TODO
-
-连线
-
-所有的初始化工作：rst 和 jp_wrong 做好
- 
-听说 ram 写操作不需要 enable 也会写进去
+- [ ] debug

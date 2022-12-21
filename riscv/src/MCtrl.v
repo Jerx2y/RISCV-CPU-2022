@@ -37,7 +37,7 @@ module MCtrl (
             mem_rw = 0;
         end else begin
             // $display("*", ins_now, " ", dat_now, " ", ins_sgn_in, " ", dat_sgn_in, " ", mem_a);
-            if (dat_sgn_in) begin
+            if (!ins_now && dat_sgn_in && !dat_sgn_out) begin
                 mem_a = dat_addr + dat_offset;
                 case (dat_opcode)
                     `LB, `LH, `LW, `LBU, `LHU: begin
@@ -47,7 +47,7 @@ module MCtrl (
                         mem_rw = 1;
                     end
                 endcase
-            end else if (ins_sgn_in) begin // 各种原因导致这个地方 ins_sgn_in 为 false 且 dat_sgn_in 为 true，但是下面posedge处两者都为 true，从而这里执行而下面未执行。 
+            end else if (ins_sgn_in && !dat_sgn_out) begin // 各种原因导致这个地方 ins_sgn_in 为 false 且 dat_sgn_in 为 true，但是下面posedge处两者都为 true，从而这里执行而下面未执行。 
                 mem_a = ins_addr + ins_offset;
                 mem_rw = 0;
             end else begin
@@ -130,9 +130,13 @@ module MCtrl (
                     2'b10: ins_tmp[15 :  8] <= mem_din;
                     2'b11: ins_tmp[23 : 16] <= mem_din;
                 endcase
-            end else if (dat_sgn_in) begin
+            end else if (dat_sgn_in && !dat_sgn_out) begin
                 // $display("&", dat_sgn_in, dat_now, ins_sgn_in, ins_now);
                 ins_sgn_out <= `False;
+
+                // if (dat_opcode == `SB && dat_addr == 196608)
+                //     $display("@", dat_val_in, "@");
+
                 case (dat_opcode)
                     `LB, `LBU, `SB: dat_sgn_out <= `True;
                     `LH, `LHU, `LW, `SH, `SW: begin
@@ -145,7 +149,7 @@ module MCtrl (
                     `SB, `SH, `SW:
                         mem_dout <= dat_val_in[ 7 :  0];
                 endcase
-            end else if (ins_sgn_in) begin
+            end else if (ins_sgn_in && !dat_sgn_out) begin
                 // $display("%", dat_sgn_in, dat_now, ins_sgn_in, ins_now);
                 dat_sgn_out <= `False;
                 ins_sgn_out <= `False;

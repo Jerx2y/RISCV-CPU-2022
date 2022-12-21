@@ -1,9 +1,9 @@
 `define True        1'b1
 `define False       1'b0
 
-`define ICSZ        512                               // ICache 大小
-`define ICID        10 : 2                            // ICache index 位置
-`define TGID        17 : 11                           // ICache tag   位置
+`define ICSZ        512
+`define ICID        10 : 2
+`define TGID        17 : 11
 
 `define BHBSZ       512
 `define BHBID       10 : 2
