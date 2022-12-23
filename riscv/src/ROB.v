@@ -7,6 +7,8 @@ module ROB (
     output wire             IF_jp_wrong,
     output reg   [31 : 0]   IF_jp_tar,
     output wire             IF_ROB_full,
+    output reg              IF_jump_sgn,
+    output reg              IF_need_jump,
 
     // Issue
     input  wire             IS_sgn,
@@ -88,6 +90,7 @@ module ROB (
             rear  <= 0;
             ready <= 0;
             full  <= `False;
+            IF_jump_sgn <= `False;
         end else if (!rdy) begin
 
         end else begin
@@ -102,7 +105,8 @@ module ROB (
                 value[rear] <= IS_value;
                 dest[rear] <= IS_dest;
                 opcode[rear] <= IS_opcode;
-                
+                jumped[rear] <= IS_jumped;
+                jumpto[rear] <= IS_jumpto;
             end
         
             // CDB of ALU
@@ -148,53 +152,65 @@ module ROB (
                         jp_wrong <= `False;
                         REG_commit_sgn <= `True;
                         LSB_commit_sgn <= `False;
+                        IF_jump_sgn <= `False;
                     end
                     `AUIPC: begin
                         jp_wrong <= `False;
                         REG_commit_sgn <= `True;
                         LSB_commit_sgn <= `False;
+                        IF_jump_sgn <= `False;
                     end
                     `JAL: begin
                         jp_wrong <= `False;
                         REG_commit_sgn <= `True;
                         LSB_commit_sgn <= `False;
+                        IF_jump_sgn <= `False;
                     end
                     `JALR: begin
                         jp_wrong <= `False;
                         REG_commit_sgn <= `True;
                         LSB_commit_sgn <= `False;
+                        IF_jump_sgn <= `False;
                     end
                     `BTYPE: begin
-                        jp_wrong <= jumped[front] != value[front][0];
+                        // jp_wrong <= jumped[front] != value[front][0];
+                        jp_wrong <= `False;
                         REG_commit_sgn <= `False;
                         LSB_commit_sgn <= `False;
                         IF_jp_tar <= jumpto[front];
+                        IF_jump_sgn <= `True;
+                        IF_need_jump <= value[front][0];
                     end
                     `LTYPE: begin
                         jp_wrong <= `False;
                         REG_commit_sgn <= `True;
                         LSB_commit_sgn <= `False;
+                        IF_jump_sgn <= `False;
                     end
                     `STYPE: begin
                         jp_wrong <= `False;
                         REG_commit_sgn <= `False;
                         LSB_commit_sgn <= `True;
+                        IF_jump_sgn <= `False;
                     end
                     `ITYPE: begin
                         jp_wrong <= `False;
                         REG_commit_sgn <= `True;
                         LSB_commit_sgn <= `False;
+                        IF_jump_sgn <= `False;
                     end
                     `RTYPE: begin
                         jp_wrong <= `False;
                         REG_commit_sgn <= `True;
                         LSB_commit_sgn <= `False;
+                        IF_jump_sgn <= `False;
                     end
                 endcase
             end else begin
                 jp_wrong <= `False;
                 REG_commit_sgn <= `False;
                 LSB_commit_sgn <= `False;
+                IF_jump_sgn <= `False;
             end
     
         end

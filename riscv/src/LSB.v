@@ -1,5 +1,7 @@
 `include "defines.v"
 
+// 当前问题：ALU算出来给 LSB 的内容不能被别的地方监听到，应该开辟专线
+ 
 module LSB (
     input wire             clk, rst, rdy,
 
@@ -38,6 +40,11 @@ module LSB (
     input wire  [31 : 0]   CDBD_result,
     input wire  [`ROBID]   CDBD_ROB_name,
 
+    // ALU
+    input wire             ALU_sgn,
+    input wire  [31 : 0]   ALU_result,
+    input wire  [`ROBID]   ALU_ROB_name,
+
     // jp_wrong
     input wire             jp_wrong
 );
@@ -74,6 +81,10 @@ module LSB (
         if (rst || jp_wrong) begin
             front <= 0;
             rear <= 0;
+            for (i = 0; i < `LSBSI; i = i + 1) begin
+                val_rdy[i] = 0;
+                adr_rdy[i] = 0;
+            end
         end else if (!rdy) begin
             
         end else begin
@@ -92,13 +103,13 @@ module LSB (
 
             // commit
             // $display(front, " ", adr_rdy[front], " ", val_rdy[front]);
-            if (adr_rdy[front] && val_rdy[front]) begin
+            if ((rear != front) && (adr_rdy[front] && val_rdy[front])) begin
                 // $display(front, "#", DC_sgn_in, "@", DC_addr);
 
-                // if (opcode[front] == `SB && adr_val[front] == 196608)
-                //     $display("@", val_val[front],"@");
 
                 if (DC_sgn_in) begin // TODO: 需要 DC_sgn_in 及时变回去 
+                    if (opcode[front] == `SB && adr_val[front] == 196608)
+                        $display("@", val_val[front],"@");
 
                 //    if (opcode[front] == `SB && adr_val[front] == 196608)
                 //        $display("ok");
@@ -112,18 +123,26 @@ module LSB (
                 DC_sgn <= `False;
             end
 
-            if (CDBA_sgn) begin
-                for (i = 0; i < `LSBSI; i = i + 1) begin
-                    // if (!val_rdy[i] && val_val[i][`ROBID] == CDBA_ROB_name) begin
-                    //     val_rdy[i] <= `True;
-                    //     val_val[i] <= CDBA_result;
-                    // end
-                    if (!adr_rdy[i] && adr_val[i][`ROBID] == CDBA_ROB_name) begin
+            if (ALU_sgn) begin
+                for (i = 0; i < `LSBSI; i = i + 1)
+                    if (!adr_rdy[i] && adr_val[i][`ROBID] == ALU_ROB_name) begin
                         adr_rdy[i] <= `True;
-                        adr_val[i] <= CDBA_result;
+                        adr_val[i] <= ALU_result;
                     end
-                end
             end
+
+            // if (CDBA_sgn) begin
+            //     for (i = 0; i < `LSBSI; i = i + 1) begin
+            //         // if (!val_rdy[i] && val_val[i][`ROBID] == CDBA_ROB_name) begin
+            //         //     val_rdy[i] <= `True;
+            //         //     val_val[i] <= CDBA_result;
+            //         // end
+            //         if (!adr_rdy[i] && adr_val[i][`ROBID] == CDBA_ROB_name) begin
+            //             adr_rdy[i] <= `True;
+            //             adr_val[i] <= CDBA_result;
+            //         end
+            //     end
+            // end
 
             // if (CDBD_sgn) begin
             //     for (i = 0; i < `LSBSI; i = i + 1)

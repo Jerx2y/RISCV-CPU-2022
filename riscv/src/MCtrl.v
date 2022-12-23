@@ -38,15 +38,29 @@ module MCtrl (
         end else begin
             // $display("*", ins_now, " ", dat_now, " ", ins_sgn_in, " ", dat_sgn_in, " ", mem_a);
             if (!ins_now && dat_sgn_in && !dat_sgn_out) begin
-                mem_a = dat_addr + dat_offset;
                 case (dat_opcode)
                     `LB, `LH, `LW, `LBU, `LHU: begin
                         mem_rw = 0;
+                        mem_a = dat_addr + dat_offset;
                     end
                     `SB, `SH, `SW: begin
-                        mem_rw = 1;
+                        mem_rw = dat_now;
+                        if (dat_now)
+                            mem_a = dat_addr + dat_offset;
+                        else mem_a = 0;
                     end
                 endcase
+
+                case (dat_opcode)
+                    `SB, `SH, `SW:
+                        case (dat_offset)
+                            2'b00: mem_dout = dat_val_in[ 7 :  0];
+                            2'b01: mem_dout = dat_val_in[15 :  8];
+                            2'b10: mem_dout = dat_val_in[23 : 16];
+                            2'b11: mem_dout = dat_val_in[31 : 24];
+                        endcase
+                endcase
+
             end else if (ins_sgn_in && !dat_sgn_out) begin // 各种原因导致这个地方 ins_sgn_in 为 false 且 dat_sgn_in 为 true，但是下面posedge处两者都为 true，从而这里执行而下面未执行。 
                 mem_a = ins_addr + ins_offset;
                 mem_rw = 0;
@@ -60,14 +74,16 @@ module MCtrl (
     always @(*) begin
         ins_val = {mem_din, ins_tmp[23 : 0]};
         case (dat_opcode)
-            `LB:     dat_val_out         = {{24{mem_din[7]}}, mem_din};
-            `LBU:    dat_val_out[ 7 : 0] = mem_din;
-            `LH:     dat_val_out         = {{16{mem_din[7]}}, mem_din, dat_tmp[7 : 0]};
-            `LHU:    dat_val_out[15 : 0] = {mem_din, dat_tmp[7 : 0]};
-            `LW:     dat_val_out         = {mem_din, dat_tmp[23 : 0]};
-            default: dat_val_out         = 0;
+            `LB:     dat_val_out = {{24{mem_din[7]}}, mem_din};
+            `LBU:    dat_val_out = {{24{1'b0}}, mem_din};
+            `LH:     dat_val_out = {{16{mem_din[7]}}, mem_din, dat_tmp[7 : 0]};
+            `LHU:    dat_val_out = {{16{1'b0}}, mem_din, dat_tmp[7 : 0]};
+            `LW:     dat_val_out = {mem_din, dat_tmp[23 : 0]};
+            default: dat_val_out = 0;
         endcase
     end
+
+    reg [31 : 0] debug;
 
     always @(posedge clk) begin
         if (rst) begin
@@ -80,8 +96,7 @@ module MCtrl (
         end else if (!rdy) begin
             
         end else begin
-            // $display(dat_sgn_in, dat_now, ins_sgn_in, ins_now);
-            if (dat_now) begin // 必须先判断 data 
+            if (dat_now && dat_sgn_in) begin // 必须先判断 data 
                 // $display("#", dat_sgn_in, dat_now, ins_sgn_in, ins_now);
                 ins_sgn_out <= `False;
                 case (dat_opcode)
@@ -101,25 +116,24 @@ module MCtrl (
                             2'b11: dat_tmp[23 : 16] <= mem_din;
                         endcase
                     end
-                    `SH: begin
+                    `SB: begin
                         dat_sgn_out <= `True;
                         dat_now <= `False;
                         dat_offset <= 0;
-                        mem_dout <= dat_val_in[15 :  8];
+                    end
+                    `SH: begin
+                        dat_sgn_out <= (dat_offset == 2'b01);
+                        dat_now <= (dat_offset != 2'b01);
+                        dat_offset <= (dat_offset ^ 2'b01);
                     end
                     `SW: begin
                         dat_sgn_out <= (dat_offset == 2'b11);
                         dat_now <= (dat_offset != 2'b11);
                         dat_offset <= -(~dat_offset);
-                        case (dat_offset)
-                            2'b01: mem_dout <= dat_val_in[15 :  8];
-                            2'b10: mem_dout <= dat_val_in[23 : 16];
-                            2'b11: mem_dout <= dat_val_in[31 : 24];
-                        endcase
                     end
                 endcase
 
-            end else if (ins_now) begin
+            end else if (ins_now && ins_sgn_in) begin
                 // $display("$", dat_sgn_in, dat_now, ins_sgn_in, ins_now);
                 dat_sgn_out <= `False;
                 ins_sgn_out <= (ins_offset == 2'b11);
@@ -130,7 +144,7 @@ module MCtrl (
                     2'b10: ins_tmp[15 :  8] <= mem_din;
                     2'b11: ins_tmp[23 : 16] <= mem_din;
                 endcase
-            end else if (dat_sgn_in && !dat_sgn_out) begin
+            end else if (dat_sgn_in && !dat_sgn_out && !ins_sgn_out) begin
                 // $display("&", dat_sgn_in, dat_now, ins_sgn_in, ins_now);
                 ins_sgn_out <= `False;
 
@@ -138,18 +152,23 @@ module MCtrl (
                 //     $display("@", dat_val_in, "@");
 
                 case (dat_opcode)
-                    `LB, `LBU, `SB: dat_sgn_out <= `True;
-                    `LH, `LHU, `LW, `SH, `SW: begin
+                    `LB, `LBU: dat_sgn_out <= `True;
+                    `LH, `LHU, `LW: begin
                         dat_sgn_out <= `False;
                         dat_now     <= `True;
                         dat_offset  <= -(~dat_offset);
                     end
+                    `SB, `SH, `SW: begin
+                        dat_sgn_out <= `False;
+                        dat_now     <= `True;
+                        dat_offset <= 0;
+                    end
                 endcase
-                case (dat_opcode)
-                    `SB, `SH, `SW:
-                        mem_dout <= dat_val_in[ 7 :  0];
-                endcase
-            end else if (ins_sgn_in && !dat_sgn_out) begin
+                // case (dat_opcode)
+                //     `SB, `SH, `SW:
+                //         mem_dout <= dat_val_in[ 7 :  0];
+                // endcase
+            end else if (ins_sgn_in && !dat_sgn_out && !ins_sgn_out) begin
                 // $display("%", dat_sgn_in, dat_now, ins_sgn_in, ins_now);
                 dat_sgn_out <= `False;
                 ins_sgn_out <= `False;

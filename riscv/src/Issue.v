@@ -214,7 +214,7 @@ module Issue (
                     RS_rs1_rdy  = rs1_rdy;
                     RS_rs2_val  = imm;
                     RS_rs2_rdy  = `True;
-                    RS_opcode   = `ADD;
+                    RS_opcode   = `LTYPE;
 
                     LSB_sgn     = `True;
                     LSB_adr_val = ROB_name;
@@ -240,7 +240,7 @@ module Issue (
                     RS_rs1_rdy = rs1_rdy;
                     RS_rs2_val = imm;
                     RS_rs2_rdy = `True;
-                    RS_opcode  = `ADD;
+                    RS_opcode  = `STYPE;
 
                     LSB_sgn     = `True;
                     LSB_adr_val = ROB_name;

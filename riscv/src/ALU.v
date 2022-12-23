@@ -14,6 +14,11 @@ module ALU (
     output reg            IF_sgn,
     output reg  [31 : 0]  IF_pc,
 
+    // LSB
+    output reg            LSB_sgn,
+    output reg  [31 : 0]  LSB_result,
+    output reg  [`ROBID]  LSB_ROB_name,
+
     // CDB
     output wire           CDB_sgn,
     output wire [31 : 0]  CDB_result,
@@ -61,19 +66,31 @@ module ALU (
                 `BLTU  : result = lhs < rhs;
                 `BGEU  : result = lhs >= rhs;
                 `JALR  : result = (lhs + rhs) & ~(32'b1);
+                `LTYPE : result = lhs + rhs;
+                `STYPE : result = lhs + rhs;
                 default: result = 0;
             endcase
             opcode = RS_opcode;
             ROB_name = RS_ROB_name;
-            sgn = `True;
-            if (opcode == `JALR) begin
-                IF_sgn = `True;
-                IF_pc = result;
-            end else begin
+            if (opcode == `STYPE || opcode == `LTYPE) begin
                 IF_sgn = `False;
+                sgn = `False;
+                LSB_sgn = `True;
+                LSB_ROB_name = ROB_name;
+                LSB_result = result;
+            end else begin
+                sgn = `True;
+                LSB_sgn = `False;
+                if (opcode == `JALR) begin
+                    IF_sgn = `True;
+                    IF_pc = result;
+                end else begin
+                    IF_sgn = `False;
+                end
             end
         end else begin
             sgn = `False;
+            LSB_sgn = `False;
             IF_sgn = `False;
         end
     end

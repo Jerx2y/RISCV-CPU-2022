@@ -51,10 +51,13 @@ module REG (
             
         end else begin
             if (IS_sgn) begin
-                reg_rdy[IS_rd] <= `False;
-                reg_ord[IS_rd] <= ROB_name;
+                // if (IS_sgn && ROB_commit_sgn && id 相等，则只有IS) 
+                if (IS_rd != 0) begin
+                    reg_rdy[IS_rd] <= `False;
+                    reg_ord[IS_rd] <= ROB_name;
+                end
             end
-            if (ROB_commit_sgn) begin
+            if (ROB_commit_sgn && ROB_commit_dest != 0) begin
                 if (!reg_rdy[ROB_commit_dest] && reg_ord[ROB_commit_dest] == ROB_commit_ROB_name) begin
                     reg_rdy[ROB_commit_dest] <= `True;
                     reg_val[ROB_commit_dest] <= ROB_commit_value;

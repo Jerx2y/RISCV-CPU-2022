@@ -26,7 +26,7 @@ module ICache (
     wire [`ICID]      index     = pc[`ICID];
     wire miss = !valid[index] || tag[index] != pc[`TGID];
 
-    assign MC_addr_sgn = miss && !MC_val_sgn;
+    assign MC_addr_sgn = miss && !MC_val_sgn; // && IF_ADDR_SGN
     assign MC_addr = pc;
 
     always @(posedge clk) begin

@@ -23,6 +23,8 @@ module IFetcher (
     input  wire          ROB_jp_wrong,
     input  wire [31 : 0] ROB_jp_tar,
     input  wire          ROB_full,
+    input  wire          ROB_jump_sgn,
+    input  wire          ROB_need_jump,
 
     // LSB
     input  wire          LSB_full
@@ -60,16 +62,10 @@ module IFetcher (
             IF_stall = `False;
         end else if (IC_ins_sgn && !ROB_full) begin
             if (op == `BROP) begin
-                if (BHB[pc[`BHBID]][1]) begin
-                    next_pc = pc + imm;
-                    IS_jump_flag = `True;
-                    IS_jump_pc = pc + 4;
-                end else begin
-                    next_pc = pc + 4;
-                    IS_jump_flag = `False;
-                    IS_jump_pc = pc + imm;
-                end
-                IF_stall = `False;
+                next_pc = pc + 4;
+                IS_jump_flag = `False;
+                IS_jump_pc = pc + imm;
+                IF_stall = `True;
             end else if (op == `JALOP) begin
                 next_pc = pc + imm;
                 IS_jump_pc = pc + 4;
@@ -94,12 +90,20 @@ module IFetcher (
         end
     end
 
+    always @(*) begin
+        if (ROB_jump_sgn) begin
+            if (ROB_need_jump)
+                next_pc = ROB_jp_tar;
+            IF_stall = `False;
+        end
+    end
+
     always @(posedge clk) begin
         if (rst) begin
             pc <= 0;
         end else if (!rdy) begin
             
-        end else if (IC_ins_sgn || ALU_sgn) begin
+        end else if (IC_ins_sgn || ALU_sgn || ROB_jump_sgn) begin
             pc <= next_pc;
         end
     end

@@ -73,6 +73,8 @@ wire [ 4 : 0] IS_REG_rd;
 wire          ROB_IF_jp_wrong;
 wire [31 : 0] ROB_IF_jp_tar;
 wire          ROB_IF_ROB_full;
+wire          ROB_IF_jump_sgn;
+wire          ROB_IF_need_jump;
 wire [`ROBID] ROB_IS_ROB_name;
 wire          ROB_IS_ROB_full;
 wire [`ROBID] ROB_RS_ROB_name;
@@ -100,6 +102,9 @@ wire [31 : 0] RS_ALU_rhs;
 
 wire          ALU_IF_sgn;
 wire [31 : 0] ALU_IF_pc;
+wire          ALU_LSB_sgn;
+wire [31 : 0] ALU_LSB_result;
+wire [`ROBID] ALU_LSB_ROB_name;
 wire          CDBA_sgn;
 wire [31 : 0] CDBA_result;
 wire [`ROBID] CDBA_ROB_name;
@@ -191,6 +196,8 @@ IFetcher ifetcher(
     .ROB_jp_wrong(ROB_IF_jp_wrong),
     .ROB_jp_tar(ROB_IF_jp_tar),
     .ROB_full(ROB_IF_ROB_full),
+    .ROB_jump_sgn(ROB_IF_jump_sgn),
+    .ROB_need_jump(ROB_IF_need_jump),
 
     // LSB
     .LSB_full(LSB_IF_LSB_full)
@@ -242,7 +249,17 @@ Issue issue(
     .REG_rs1(IS_REG_rs1),
     .REG_rs2(IS_REG_rs2),
     .REG_sgn(IS_REG_sgn),
-    .REG_rd(IS_REG_rd)
+    .REG_rd(IS_REG_rd),
+    
+    // CDBA
+    .CDBA_sgn(CDBA_sgn),
+    .CDBA_result(CDBA_result),
+    .CDBA_ROB_name(CDBA_ROB_name),
+
+    // CDBD
+    .CDBD_sgn(CDBD_sgn),
+    .CDBD_result(CDBD_result),
+    .CDBD_ROB_name(CDBD_ROB_name)
 );
 
 ROB rob(
@@ -252,6 +269,8 @@ ROB rob(
     .IF_ROB_full(ROB_IF_ROB_full),
     .IF_jp_wrong(ROB_IF_jp_wrong),
     .IF_jp_tar(ROB_IF_jp_tar),
+    .IF_jump_sgn(ROB_IF_jump_sgn),
+    .IF_need_jump(ROB_IF_need_jump),
 
     // Issue
     .IS_sgn(IS_ROB_sgn),
@@ -351,6 +370,11 @@ ALU alu(
     .IF_sgn(ALU_IF_sgn),
     .IF_pc(ALU_IF_pc),
 
+    // LSB
+    .LSB_sgn(ALU_LSB_sgn),
+    .LSB_result(ALU_LSB_result),
+    .LSB_ROB_name(ALU_LSB_ROB_name),
+
     // CDB
     .CDB_sgn(CDBA_sgn),
     .CDB_result(CDBA_result),
@@ -394,6 +418,11 @@ LSB lsb(
     .CDBD_sgn(CDBD_sgn),
     .CDBD_result(CDBD_result),
     .CDBD_ROB_name(CDBD_ROB_name),
+
+    // ALU
+    .ALU_sgn(ALU_LSB_sgn),
+    .ALU_result(ALU_LSB_result),
+    .ALU_ROB_name(ALU_LSB_ROB_name),
 
     // jp_wrong
     .jp_wrong(jp_wrong)
