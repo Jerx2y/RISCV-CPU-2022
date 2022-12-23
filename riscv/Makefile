@@ -1,7 +1,7 @@
 prefix = $(shell pwd)
 # Folder Path
 src = $(prefix)/src
-testspace = $(prefix)/testspace
+testspace = $(prefix)/test
 
 sim_testcase = $(prefix)/testcase/sim
 fpga_testcase = $(prefix)/testcase/fpga

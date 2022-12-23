@@ -1,9 +1,0 @@
-WARNING: /mnt/d/STUDY/SYSI/RISCV-CPU-2022/riscv/src/common/block_ram/block_ram.v:93: $readmemh: Standard inconsistency, following 1364-2005.
-VCD info: dumpfile test.vcd opened for output.
-@        52@
-4@        52@
-4@    131029@
-Õ@    131028@
-Ô@        10@
-
-IO:Return

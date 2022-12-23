@@ -30,6 +30,7 @@ module MCtrl (
     reg [31 : 0] ins_tmp;
     reg [ 1 : 0] dat_offset;
     reg [31 : 0] dat_tmp;
+    reg [ 5 : 0] last_opcode;
 
     always @(*) begin
         if (rst || !rdy) begin
@@ -73,11 +74,11 @@ module MCtrl (
 
     always @(*) begin
         ins_val = {mem_din, ins_tmp[23 : 0]};
-        case (dat_opcode)
+        case (last_opcode)
             `LB:     dat_val_out = {{24{mem_din[7]}}, mem_din};
-            `LBU:    dat_val_out = {{24{1'b0}}, mem_din};
+            `LBU:    dat_val_out = {{24'b0}, mem_din};
             `LH:     dat_val_out = {{16{mem_din[7]}}, mem_din, dat_tmp[7 : 0]};
-            `LHU:    dat_val_out = {{16{1'b0}}, mem_din, dat_tmp[7 : 0]};
+            `LHU:    dat_val_out = {{16'b0}, mem_din, dat_tmp[7 : 0]};
             `LW:     dat_val_out = {mem_din, dat_tmp[23 : 0]};
             default: dat_val_out = 0;
         endcase
@@ -147,12 +148,17 @@ module MCtrl (
             end else if (dat_sgn_in && !dat_sgn_out && !ins_sgn_out) begin
                 // $display("&", dat_sgn_in, dat_now, ins_sgn_in, ins_now);
                 ins_sgn_out <= `False;
+                last_opcode <= dat_opcode;
 
                 // if (dat_opcode == `SB && dat_addr == 196608)
                 //     $display("@", dat_val_in, "@");
 
                 case (dat_opcode)
-                    `LB, `LBU: dat_sgn_out <= `True;
+                    `LB, `LBU: begin
+                        dat_sgn_out <= `True;
+                        dat_now <= `False;
+                        dat_offset <= 0;
+                    end
                     `LH, `LHU, `LW: begin
                         dat_sgn_out <= `False;
                         dat_now     <= `True;
@@ -164,10 +170,6 @@ module MCtrl (
                         dat_offset <= 0;
                     end
                 endcase
-                // case (dat_opcode)
-                //     `SB, `SH, `SW:
-                //         mem_dout <= dat_val_in[ 7 :  0];
-                // endcase
             end else if (ins_sgn_in && !dat_sgn_out && !ins_sgn_out) begin
                 // $display("%", dat_sgn_in, dat_now, ins_sgn_in, ins_now);
                 dat_sgn_out <= `False;

@@ -1,5 +1,3 @@
-riscv/testspace/*
-
 *.o
 *.vcd
 

@@ -108,8 +108,8 @@ module LSB (
 
 
                 if (DC_sgn_in) begin // TODO: 需要 DC_sgn_in 及时变回去 
-                    if (opcode[front] == `SB && adr_val[front] == 196608)
-                        $display("@", val_val[front],"@");
+                //    if (opcode[front] == `SB && adr_val[front] == 196608)
+                //        $display("@", val_val[front],"@");
 
                 //    if (opcode[front] == `SB && adr_val[front] == 196608)
                 //        $display("ok");
