@@ -238,6 +238,7 @@ Issue issue(
 
     // LSB
     .LSB_name(LSB_IS_LSB_name),
+    .LSB_full(LSB_IF_LSB_full),
     .LSB_sgn(IS_LSB_sgn),
     .LSB_opcode(IS_LSB_opcode),
     .LSB_adr_val(IS_LSB_adr_val),

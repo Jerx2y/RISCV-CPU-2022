@@ -35,6 +35,7 @@ module Issue (
 
     // LSB
     input wire   [`LSBID]   LSB_name,
+    input wire              LSB_full,
     output reg              LSB_sgn,
     output reg   [ 5 : 0]   LSB_opcode,
     output reg   [31 : 0]   LSB_adr_val,
@@ -381,7 +382,7 @@ module Issue (
         end else if (!rdy) begin
             
         end else begin
-            if (IF_ins_sgn) begin
+            if (IF_ins_sgn && !ROB_full && !LSB_full) begin
                 ROB_sgn <= `True;
                 ins <= IF_ins;
                 jump_pc <= IF_jump_pc;

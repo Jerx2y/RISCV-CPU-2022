@@ -61,7 +61,7 @@ module IFetcher (
             IF_stall = `False;
         end else if (ROB_full || LSB_full) begin
             next_pc = pc;
-            IF_stall = `False;
+            IF_stall = (stall_tmp > 2);
         end else if (IC_ins_sgn) begin
             if (op == `BROP) begin
                 next_pc = pc;
@@ -103,18 +103,24 @@ module IFetcher (
         end
     end
 
+    reg last_IC_ins_sgn;
+
     always @(posedge clk) begin
         if (rst) begin
             pc <= 0;
+            stall_tmp <= 0;
+            last_IC_ins_sgn <= `False;
         end else if (!rdy) begin
             
         end else if (IC_ins_sgn || ALU_sgn || ROB_jump_sgn) begin
             pc <= next_pc;
         end
         
-        if (ALU_sgn || ROB_jump_sgn)
+        last_IC_ins_sgn <= IC_ins_sgn;
+
+        if (ROB_jump_sgn)
             stall_tmp <= 0;
-        else if (LSB_full || ROB_full)
+        else if (last_IC_ins_sgn && op == `BROP && (LSB_full || ROB_full))
             stall_tmp <= stall_tmp + 1;
     end
 
