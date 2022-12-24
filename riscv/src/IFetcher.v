@@ -74,6 +74,7 @@ module IFetcher (
                 IS_jump_pc = pc + 4;
                 IF_stall = `True;
             end else if (op == `AUIPCOP) begin
+                next_pc = pc + 4;
                 IS_jump_pc = pc;
                 IF_stall = `False;
             end else begin
