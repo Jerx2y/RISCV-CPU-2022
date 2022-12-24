@@ -50,19 +50,34 @@ module REG (
         end else if (!rdy) begin
             
         end else begin
-            if (IS_sgn) begin
-                // if (IS_sgn && ROB_commit_sgn && id 相等，则只有IS) 
-                if (IS_rd != 0) begin
-                    reg_rdy[IS_rd] <= `False;
-                    reg_ord[IS_rd] <= ROB_name;
-                end
+            if (IS_sgn && IS_rd != 0) begin
+                reg_rdy[IS_rd] <= `False;
+                reg_ord[IS_rd] <= ROB_name;
             end
             if (ROB_commit_sgn && ROB_commit_dest != 0) begin
                 if (!reg_rdy[ROB_commit_dest] && reg_ord[ROB_commit_dest] == ROB_commit_ROB_name) begin
-                    reg_rdy[ROB_commit_dest] <= `True;
+                    reg_rdy[ROB_commit_dest] <= (!IS_sgn || IS_rd != ROB_commit_dest);
                     reg_val[ROB_commit_dest] <= ROB_commit_value;
                 end
             end
+
+
+            // if (IS_sgn && ROB_commit_sgn && IS_rd == ROB_commit_dest && IS_rd != 0) begin
+            //     reg_rdy[IS_rd] <= `False;
+            //     reg_ord[IS_rd] <= ROB_name;
+            //     // reg_val[IS_rd] <= ROB_commit_value;
+            // end else begin
+            //     if (IS_sgn && IS_rd != 0) begin
+            //         reg_rdy[IS_rd] <= `False;
+            //         reg_ord[IS_rd] <= ROB_name;
+            //     end 
+            //     if (ROB_commit_sgn && ROB_commit_dest != 0) begin
+            //         if (!reg_rdy[ROB_commit_dest] && reg_ord[ROB_commit_dest] == ROB_commit_ROB_name) begin
+            //             reg_rdy[ROB_commit_dest] <= `True;
+            //             reg_val[ROB_commit_dest] <= ROB_commit_value;
+            //         end
+            //     end
+            // end
         end
     end
 

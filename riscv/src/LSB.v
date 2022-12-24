@@ -57,6 +57,7 @@ module LSB (
     reg             val_rdy   [`LSBSZ];
 
     reg  [`LSBID]   front, rear;
+    reg             full;
 
     assign IS_LSB_name = rear;
 
@@ -64,7 +65,7 @@ module LSB (
     assign DC_val      = val_val[front];
     assign DC_opcode   = opcode[front];
 
-    assign IF_LSB_full = (front == -(~rear));
+    assign IF_LSB_full = DC_sgn_in ? (full && IS_sgn) : (full || (IS_sgn && (front == -(~rear))));
 
     integer i;
 
@@ -78,16 +79,19 @@ module LSB (
     end
 
     always @(posedge clk) begin
-        if (rst || jp_wrong) begin
+        if (rst) begin
             front <= 0;
             rear <= 0;
             for (i = 0; i < `LSBSI; i = i + 1) begin
                 val_rdy[i] = 0;
                 adr_rdy[i] = 0;
             end
+            full <= `False;
         end else if (!rdy) begin
             
         end else begin
+            full <= DC_sgn_in ? (full && IS_sgn) : (full || (IS_sgn && (front == -(~rear))));
+
             if (IS_sgn) begin
                 rear <= -(~rear);
                 // TODO: 判断 SLB 已满
@@ -103,7 +107,7 @@ module LSB (
 
             // commit
             // $display(front, " ", adr_rdy[front], " ", val_rdy[front]);
-            if ((rear != front) && (adr_rdy[front] && val_rdy[front])) begin
+            if ((full || rear != front) && (adr_rdy[front] && val_rdy[front])) begin
                 // $display(front, "#", DC_sgn_in, "@", DC_addr);
 
 

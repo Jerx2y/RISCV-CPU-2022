@@ -40,7 +40,7 @@ module IFetcher (
 
     reg             IF_stall;
 
-    assign IS_ins_sgn = IC_ins_sgn && !ROB_full;
+    assign IS_ins_sgn = IC_ins_sgn && !ROB_full && !LSB_full;
     assign IS_ins = IC_ins;
     assign IC_pc_sgn = !IF_stall && !ROB_full && !LSB_full;
     assign IC_pc = next_pc;
@@ -53,16 +53,18 @@ module IFetcher (
         endcase
     end
 
+    reg [31 : 0] stall_tmp;
+
     always @(*) begin
         if (rst) begin
             next_pc = 0;
             IF_stall = `False;
-        end else if (ROB_jp_wrong) begin
-            next_pc = ROB_jp_tar;
+        end else if (ROB_full || LSB_full) begin
+            next_pc = pc;
             IF_stall = `False;
-        end else if (IC_ins_sgn && !ROB_full) begin
+        end else if (IC_ins_sgn) begin
             if (op == `BROP) begin
-                next_pc = pc + 4;
+                next_pc = pc;
                 IS_jump_flag = `False;
                 IS_jump_pc = pc + imm;
                 IF_stall = `True;
@@ -71,6 +73,7 @@ module IFetcher (
                 IS_jump_pc = pc + 4;
                 IF_stall = `False;
             end else if (op == `JALROP) begin
+                next_pc = pc;
                 IS_jump_pc = pc + 4;
                 IF_stall = `True;
             end else if (op == `AUIPCOP) begin
@@ -86,8 +89,8 @@ module IFetcher (
 
     always @(*) begin
         if (ALU_sgn)  begin
-            IF_stall = `False;
             next_pc = ALU_pc;
+            IF_stall = `False;
         end
     end
 
@@ -95,6 +98,7 @@ module IFetcher (
         if (ROB_jump_sgn) begin
             if (ROB_need_jump)
                 next_pc = ROB_jp_tar;
+            else next_pc = pc + 4;
             IF_stall = `False;
         end
     end
@@ -107,6 +111,11 @@ module IFetcher (
         end else if (IC_ins_sgn || ALU_sgn || ROB_jump_sgn) begin
             pc <= next_pc;
         end
+        
+        if (ALU_sgn || ROB_jump_sgn)
+            stall_tmp <= 0;
+        else if (LSB_full || ROB_full)
+            stall_tmp <= stall_tmp + 1;
     end
 
 endmodule
