@@ -8,26 +8,6 @@
 
 ## Progress
 
-- [x] MCtrl
+- `000_array_test1 - 101_queens`, `103_bulgarian`, `basicopt1`, `manyarguments`, `statement_test`, `superloop`, `uartboom` passed.
 
-- [x] ICache
-
-- [x] IFetcher
-
-- [x] Issue
-
-- [x] RoB
-
-- [x] RS
-
-- [x] LSB
-
-- [x] DCache
-
-- [x] ALU
-
-- [x] Reg
-
-- [x] cpu.v
-
-- [ ] debug
+- `102_qsort passed` in 58 min 13 s. All testcases except `tak`, `heart`, `pi` passed.
