@@ -12,10 +12,6 @@ module Issue (
     // ROB
     input wire   [`ROBID]   ROB_name,
     input wire              ROB_full,
-    input wire              ROB_commit_sgn,
-    input wire   [`REGID]   ROB_commit_dest,
-    input wire   [`ROBID]   ROB_commit_ROB_name,
-    input wire   [31 : 0]   ROB_commit_value,
     output reg              ROB_sgn,
     output reg              ROB_ready,
     output reg   [ 5 : 0]   ROB_opcode,
@@ -101,9 +97,6 @@ module Issue (
             end else if (CDBD_sgn && CDBD_ROB_name == REG_rs1_val[`ROBID]) begin
                 rs1_rdy = `True;
                 rs1_val = CDBD_result;
-            end else if (ROB_commit_sgn && ROB_commit_dest == rs1) begin
-                rs1_rdy = `True;
-                rs1_val = ROB_commit_value;
             end else begin
                 rs1_rdy = `False;
                 rs1_val = REG_rs1_val;
@@ -118,9 +111,6 @@ module Issue (
             end else if (CDBD_sgn && CDBD_ROB_name == REG_rs2_val[`ROBID]) begin
                 rs2_rdy = `True;
                 rs2_val = CDBD_result;
-            end else if (ROB_commit_sgn && ROB_commit_dest == rs2) begin
-                rs2_rdy = `True;
-                rs2_val = ROB_commit_value;
             end else begin
                 rs2_rdy = `False;
                 rs2_val = REG_rs2_val;

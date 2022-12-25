@@ -215,10 +215,6 @@ Issue issue(
     // ROB
     .ROB_name(ROB_IS_ROB_name),
     .ROB_full(ROB_IS_ROB_full),
-    .ROB_commit_sgn(ROB_REG_commit_sgn),
-    .ROB_commit_dest(ROB_REG_commit_dest),
-    .ROB_commit_ROB_name(ROB_REG_commit_ROB_name),
-    .ROB_commit_value(ROB_REG_commit_value),
     .ROB_sgn(IS_ROB_sgn),
     .ROB_ready(IS_ROB_ready),
     .ROB_opcode(IS_ROB_opcode),
