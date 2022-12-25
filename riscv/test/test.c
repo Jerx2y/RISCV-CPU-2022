@@ -1,11 +1,45 @@
 #include "io.h"
-int a(int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15)
-{
-    return a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8 + a9 + a10 + a11 + a12 + a13 + a14 + a15;
-}
+// Target: qsort
+// Possible optimization: Dead code elimination, common expression, strength reduction
+// REMARKS: nothing.
+//
+//
 
-int main()
-{
-    outlln(a(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15));
+//int a[10100];
+int a[10100];
+int n = 10000;
+
+int qsrt(int l, int r) {
+    int i = l;
+    int j = r;
+    int x = a[(l + r) / 2];
+    while (i <= j) {
+        while (a[i] < x) i++;
+        while (a[j] > x) j--;
+        if (i <= j) {
+            int temp = a[i];
+            a[i] = a[j];
+            a[j] = temp;
+            i++;
+            j--;
+        }
+    }
+    if (l < j) qsrt(l, j);
+    if (i < r) qsrt(i, r);
     return 0;
 }
+
+int main() {
+    int i;
+    for (i = 1; i <= n; i++)
+        a[i] = n + 1 - i;
+    qsrt(1, n);
+    for (i = 1; i <= n; i++) {
+		outl(a[i]);
+		print(" ");
+        sleep(1); // to prevent UART buffer from overflowing
+	}
+    print("\n");
+    return 0;
+}
+
