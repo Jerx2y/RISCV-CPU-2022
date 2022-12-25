@@ -10,7 +10,7 @@ module IFetcher (
     output wire [31 : 0] IC_pc,
 
     // Issue
-    output wire          IS_ins_sgn,
+    output reg           IS_ins_sgn,
     output wire [31 : 0] IS_ins,
     output reg           IS_jump_flag,
     output reg  [31 : 0] IS_jump_pc,
@@ -40,7 +40,7 @@ module IFetcher (
 
     reg             IF_stall;
 
-    assign IS_ins_sgn = IC_ins_sgn && !ROB_full && !LSB_full;
+    // assign IS_ins_sgn = IC_ins_sgn;
     assign IS_ins = IC_ins;
     assign IC_pc_sgn = !IF_stall && !ROB_full && !LSB_full;
     assign IC_pc = next_pc;
@@ -53,16 +53,19 @@ module IFetcher (
         endcase
     end
 
-    reg [31 : 0] stall_tmp;
+    reg last_full;
 
     always @(*) begin
         if (rst) begin
             next_pc = 0;
             IF_stall = `False;
+            IS_ins_sgn = `False;
         end else if (ROB_full || LSB_full) begin
             next_pc = pc;
-            IF_stall = (stall_tmp > 2);
+            if (!last_full)
+                IS_ins_sgn = IC_ins_sgn;
         end else if (IC_ins_sgn) begin
+            IS_ins_sgn = `True;
             if (op == `BROP) begin
                 next_pc = pc;
                 IS_jump_flag = `False;
@@ -84,6 +87,8 @@ module IFetcher (
                 next_pc = pc + 4;
                 IF_stall = `False;
             end
+        end else begin
+            IS_ins_sgn = IF_stall && (last_full) && IS_ins_sgn;
         end
     end
 
@@ -103,25 +108,15 @@ module IFetcher (
         end
     end
 
-    reg last_IC_ins_sgn;
-
     always @(posedge clk) begin
+        last_full <= ROB_full || LSB_full;
         if (rst) begin
             pc <= 0;
-            stall_tmp <= 0;
-            last_IC_ins_sgn <= `False;
         end else if (!rdy) begin
             
         end else if (IC_ins_sgn || ALU_sgn || ROB_jump_sgn) begin
             pc <= next_pc;
         end
-        
-        last_IC_ins_sgn <= IC_ins_sgn;
-
-        if (ROB_jump_sgn)
-            stall_tmp <= 0;
-        else if (last_IC_ins_sgn && op == `BROP && (LSB_full || ROB_full))
-            stall_tmp <= stall_tmp + 1;
     end
 
 endmodule
