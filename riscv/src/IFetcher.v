@@ -36,7 +36,6 @@ module IFetcher (
     wire [ 6 : 0]   op = IC_ins[6 : 0];
 
     reg  [31 : 0]   imm;
-    reg  [ 1 : 0]   BHB[`BHBSZ];
 
     reg             IF_stall;
 
@@ -54,18 +53,31 @@ module IFetcher (
     end
 
     reg last_full;
+    reg IF_stall_tmp;
+    reg IS_ins_sgn_tmp;
+    reg IS_jump_flag_tmp;
+    reg [31 : 0] IS_jump_pc_tmp ;
+    reg [31 : 0] next_pc_tmp;
 
     always @(*) begin
         if (rst) begin
             next_pc = 0;
             IF_stall = `False;
             IS_ins_sgn = `False;
+            IS_jump_flag = 0;
+            IS_jump_pc = 0;
         end else if (ROB_full || LSB_full) begin
             next_pc = pc;
+            IF_stall = IF_stall_tmp;
+            IS_ins_sgn = IS_ins_sgn_tmp;
+            IS_jump_flag = IS_jump_flag_tmp;
+            IS_jump_pc = IS_jump_pc_tmp;
             if (!last_full)
                 IS_ins_sgn = IC_ins_sgn;
         end else if (IC_ins_sgn) begin
             IS_ins_sgn = `True;
+            IS_jump_flag = 0;
+            IS_jump_pc = 0;
             if (op == `BROP) begin
                 next_pc = pc;
                 IS_jump_flag = `False;
@@ -86,20 +98,21 @@ module IFetcher (
             end else begin
                 next_pc = pc + 4;
                 IF_stall = `False;
+                IS_jump_pc = 0;
             end
         end else begin
-            IS_ins_sgn = IF_stall && (last_full) && IS_ins_sgn;
+            IS_ins_sgn = IF_stall && (last_full) && IS_ins_sgn_tmp;
+            IF_stall = IF_stall_tmp;
+            IS_jump_flag = IS_jump_flag_tmp;
+            IS_jump_pc = IS_jump_pc_tmp;
+            next_pc = next_pc_tmp;
         end
-    end
 
-    always @(*) begin
         if (ALU_sgn)  begin
             next_pc = ALU_pc;
             IF_stall = `False;
         end
-    end
 
-    always @(*) begin
         if (ROB_jump_sgn) begin
             if (ROB_need_jump)
                 next_pc = ROB_jp_tar;
@@ -109,7 +122,12 @@ module IFetcher (
     end
 
     always @(posedge clk) begin
+        IF_stall_tmp <= IF_stall;
+        IS_ins_sgn_tmp <= IS_ins_sgn;
+        IS_jump_flag_tmp <= IS_jump_flag;
+        IS_jump_pc_tmp <= IS_jump_pc;
         last_full <= ROB_full || LSB_full;
+        next_pc_tmp <= next_pc;
         if (rst) begin
             pc <= 0;
         end else if (!rdy) begin

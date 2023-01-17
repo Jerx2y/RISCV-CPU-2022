@@ -31,14 +31,16 @@ module MCtrl (
     reg [ 1 : 0] dat_offset;
     reg [31 : 0] dat_tmp;
     reg [ 5 : 0] last_opcode;
+    wire         is_IO = dat_addr[17:16] == 2'b11;
 
     always @(*) begin
         if (rst || !rdy) begin
             mem_a = 0;
             mem_rw = 0;
+            mem_dout = 0;
         end else begin
             // $display("*", ins_now, " ", dat_now, " ", ins_sgn_in, " ", dat_sgn_in, " ", mem_a);
-            if (!ins_now && dat_sgn_in && !dat_sgn_out) begin
+            if (!ins_now && dat_sgn_in && !dat_sgn_out && !(is_IO && io_buffer_full)) begin
                 case (dat_opcode)
                     `LB, `LH, `LW, `LBU, `LHU: begin
                         mem_rw = 0;
@@ -50,6 +52,10 @@ module MCtrl (
                             mem_a = dat_addr + dat_offset;
                         else mem_a = 0;
                     end
+                    default: begin
+                        mem_a = 0;
+                        mem_rw = 0;
+                    end
                 endcase
 
                 case (dat_opcode)
@@ -60,14 +66,17 @@ module MCtrl (
                             2'b10: mem_dout = dat_val_in[23 : 16];
                             2'b11: mem_dout = dat_val_in[31 : 24];
                         endcase
+                    default: mem_dout = 0;
                 endcase
 
-            end else if (ins_sgn_in && !dat_sgn_out) begin // 各种原因导致这个地方 ins_sgn_in 为 false 且 dat_sgn_in 为 true，但是下面posedge处两者都为 true，从而这里执行而下面未执行。 
+            end else if (!dat_now && ins_sgn_in && !dat_sgn_out) begin // 各种原因导致这个地方 ins_sgn_in 为 false 且 dat_sgn_in 为 true，但是下面posedge处两者都为 true，从而这里执行而下面未执行。 
                 mem_a = ins_addr + ins_offset;
                 mem_rw = 0;
+                mem_dout = 0;
             end else begin
                 mem_a = 0;
                 mem_rw = 0;
+                mem_dout = 0;
             end
         end
     end
@@ -97,7 +106,7 @@ module MCtrl (
         end else if (!rdy) begin
             
         end else begin
-            if (dat_now && dat_sgn_in) begin // 必须先判断 data 
+            if (dat_now && dat_sgn_in && !(is_IO && io_buffer_full) && !ins_now) begin // 必须先判断 data 
                 // $display("#", dat_sgn_in, dat_now, ins_sgn_in, ins_now);
                 ins_sgn_out <= `False;
                 case (dat_opcode)
@@ -134,7 +143,7 @@ module MCtrl (
                     end
                 endcase
 
-            end else if (ins_now && ins_sgn_in) begin
+            end else if (ins_now && ins_sgn_in && !dat_now) begin
                 // $display("$", dat_sgn_in, dat_now, ins_sgn_in, ins_now);
                 dat_sgn_out <= `False;
                 ins_sgn_out <= (ins_offset == 2'b11);
@@ -145,7 +154,7 @@ module MCtrl (
                     2'b10: ins_tmp[15 :  8] <= mem_din;
                     2'b11: ins_tmp[23 : 16] <= mem_din;
                 endcase
-            end else if (dat_sgn_in && !dat_sgn_out && !ins_sgn_out) begin
+            end else if (dat_sgn_in && !dat_sgn_out && !ins_sgn_out && !(is_IO && io_buffer_full) && !ins_now) begin
                 // $display("&", dat_sgn_in, dat_now, ins_sgn_in, ins_now);
                 ins_sgn_out <= `False;
                 last_opcode <= dat_opcode;
@@ -170,7 +179,7 @@ module MCtrl (
                         dat_offset <= 0;
                     end
                 endcase
-            end else if (ins_sgn_in && !dat_sgn_out && !ins_sgn_out) begin
+            end else if (ins_sgn_in && !dat_sgn_out && !ins_sgn_out && !dat_now) begin
                 // $display("%", dat_sgn_in, dat_now, ins_sgn_in, ins_now);
                 dat_sgn_out <= `False;
                 ins_sgn_out <= `False;

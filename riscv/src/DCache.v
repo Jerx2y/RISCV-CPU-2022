@@ -38,6 +38,8 @@ module DCache (
             CDBD_ROB_name = LSB_val_in[`ROBID];
         end else begin
             CDBD_sgn = `False;
+            CDBD_result = 0;
+            CDBD_ROB_name = 0;
         end
     end
 

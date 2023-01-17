@@ -83,10 +83,45 @@ module Issue (
 
     always @(*) begin
         if (rst) begin
-            RS_sgn = `False;
-            LSB_sgn = `False;
-            REG_sgn = `False;
+            ROB_ready = 0;
+            ROB_opcode = 0;
+            ROB_value = 0;
+            ROB_dest = 0;
+            ROB_jumped = 0;
+            ROB_jumpto = 0;
+            RS_sgn = 0;
+            RS_opcode = 0;
+            RS_rs1_val = 0;
+            RS_rs2_val = 0;
+            RS_rs1_rdy = 0;
+            RS_rs2_rdy = 0;
+            LSB_sgn = 0;
+            LSB_opcode = 0;
+            LSB_adr_val = 0;
+            LSB_val_val = 0;
+            LSB_adr_rdy = 0;
+            LSB_val_rdy = 0;
+            REG_sgn = 0;
         end else if (ROB_sgn) begin
+            ROB_ready = 0;
+            ROB_opcode = 0;
+            ROB_value = 0;
+            ROB_dest = 0;
+            ROB_jumped = 0;
+            ROB_jumpto = 0;
+            RS_sgn = 0;
+            RS_opcode = 0;
+            RS_rs1_val = 0;
+            RS_rs2_val = 0;
+            RS_rs1_rdy = 0;
+            RS_rs2_rdy = 0;
+            LSB_sgn = 0;
+            LSB_opcode = 0;
+            LSB_adr_val = 0;
+            LSB_val_val = 0;
+            LSB_adr_rdy = 0;
+            LSB_val_rdy = 0;
+            REG_sgn = 0;
 
             if (REG_rs1_rdy) begin
                 rs1_rdy = `True;
@@ -360,9 +395,25 @@ module Issue (
                 end
             endcase
         end else begin
-            RS_sgn = `False;
-            LSB_sgn = `False;
-            REG_sgn = `False;
+            ROB_ready = 0;
+            ROB_opcode = 0;
+            ROB_value = 0;
+            ROB_dest = 0;
+            ROB_jumped = 0;
+            ROB_jumpto = 0;
+            RS_sgn = 0;
+            RS_opcode = 0;
+            RS_rs1_val = 0;
+            RS_rs2_val = 0;
+            RS_rs1_rdy = 0;
+            RS_rs2_rdy = 0;
+            LSB_sgn = 0;
+            LSB_opcode = 0;
+            LSB_adr_val = 0;
+            LSB_val_val = 0;
+            LSB_adr_rdy = 0;
+            LSB_val_rdy = 0;
+            REG_sgn = 0;
         end
     end
 

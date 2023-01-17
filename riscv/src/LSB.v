@@ -69,22 +69,13 @@ module LSB (
 
     integer i;
 
-    always @(*) begin
-        if (ROB_commit_sgn) begin
-            val_rdy[ROB_commit_dest] = `True;
-            val_val[ROB_commit_dest] = ROB_commit_value;
-            // if (opcode[ROB_commit_dest] == `SB && adr_val[ROB_commit_dest] == 196608)
-            //     $display("#", val_val[ROB_commit_dest]);
-        end
-    end
-
     always @(posedge clk) begin
         if (rst) begin
             front <= 0;
             rear <= 0;
             for (i = 0; i < `LSBSI; i = i + 1) begin
-                val_rdy[i] = 0;
-                adr_rdy[i] = 0;
+                val_rdy[i] <= 0;
+                adr_rdy[i] <= 0;
             end
             full <= `False;
         end else if (!rdy) begin
@@ -135,6 +126,12 @@ module LSB (
                     end
             end
 
+            if (ROB_commit_sgn) begin
+                val_rdy[ROB_commit_dest] <= `True;
+                val_val[ROB_commit_dest] <= ROB_commit_value;
+                // if (opcode[ROB_commit_dest] == `SB && adr_val[ROB_commit_dest] == 196608)
+                //     $display("#", val_val[ROB_commit_dest]);
+            end
             // if (CDBA_sgn) begin
             //     for (i = 0; i < `LSBSI; i = i + 1) begin
             //         // if (!val_rdy[i] && val_val[i][`ROBID] == CDBA_ROB_name) begin

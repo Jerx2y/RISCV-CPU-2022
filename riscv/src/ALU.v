@@ -39,6 +39,11 @@ module ALU (
 
     always @(*) begin
         if (RS_sgn) begin
+            IF_pc = 0;
+            LSB_result = 0;
+            LSB_ROB_name = 0;
+            result = 0;
+            ROB_name = 0;
             case (RS_opcode)
                 `ADD   : result = lhs + rhs;
                 `ADDI  : result = lhs + rhs;
@@ -92,6 +97,11 @@ module ALU (
             sgn = `False;
             LSB_sgn = `False;
             IF_sgn = `False;
+            IF_pc = 0;
+            LSB_result = 0;
+            LSB_ROB_name = 0;
+            result = 0;
+            ROB_name = 0;
         end
     end
 
