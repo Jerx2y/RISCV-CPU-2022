@@ -1,8 +1,10 @@
-# <img src="/README.assets/cpu.png" width="40" align=center /> RISCV-CPU 2022
+# RISCV-CPU 2022
+
+> A toy RISC-V CPU based on RV32I 
 
 ![](https://img.shields.io/badge/Language-Verilog-blue) ![](https://img.shields.io/badge/All%20testcases-Passed-brightgreen)
 
-> [Project Introduction](https://github.com/ACMClassCourses/RISCV-CPU)
+[Project Introduction](https://github.com/ACMClassCourses/RISCV-CPU)
 
 ## Designment
 
